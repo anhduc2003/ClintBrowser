@@ -29,6 +29,18 @@ internal class QuiverGuardJsBridge(
         QuiverGuardEngine.hiddenClassIdSelectorsJson(classesJson, idsJson, exceptionsJson)
 
     @JavascriptInterface
+    fun guardFlags(url: String, topUrl: String): String {
+        if (!QuiverGuardWebIntegration.isActiveFor(appContext, topUrl.ifEmpty { url })) return ""
+        return QuiverGuardWebIntegration.interactionGuardsJson(appContext)
+    }
+
+    @JavascriptInterface
+    fun reportBlockedClick(url: String) {
+        if (url.isEmpty()) return
+        tabIdProvider()?.let { BlockedRequestCounter.increment(it) }
+    }
+
+    @JavascriptInterface
     fun blockWebSocket(url: String, pageUrl: String): Boolean {
         val check = QuiverGuardEngine.checkNetworkRequest(url, pageUrl, "websocket", "GET") ?: return false
         if (!check.matched) return false

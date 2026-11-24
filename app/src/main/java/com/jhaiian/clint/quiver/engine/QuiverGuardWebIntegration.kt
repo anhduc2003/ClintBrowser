@@ -20,6 +20,8 @@ import java.util.concurrent.ConcurrentHashMap
 object QuiverGuardWebIntegration {
 
     const val PREF_ENABLED = "quiver_guard_enabled"
+    const val PREF_COOKIE_DISMISS = "quiver_guard_cookie_dismiss"
+    const val PREF_CLICK_GUARD = "quiver_guard_click_guard"
 
     private const val JS_BRIDGE_NAME = "__qgBridge"
 
@@ -44,6 +46,15 @@ object QuiverGuardWebIntegration {
 
     fun isEnabled(context: Context): Boolean =
         PreferenceManager.getDefaultSharedPreferences(context).getBoolean(PREF_ENABLED, false)
+
+    fun isCookieDismissEnabled(context: Context): Boolean =
+        PreferenceManager.getDefaultSharedPreferences(context).getBoolean(PREF_COOKIE_DISMISS, true)
+
+    fun isClickGuardEnabled(context: Context): Boolean =
+        PreferenceManager.getDefaultSharedPreferences(context).getBoolean(PREF_CLICK_GUARD, true)
+
+    fun interactionGuardsJson(context: Context): String =
+        """{"cookie":${isCookieDismissEnabled(context)},"click":${isClickGuardEnabled(context)}}"""
 
     fun isExcepted(context: Context, host: String?): Boolean =
         !host.isNullOrEmpty() && SitePermissionManager.getState(
