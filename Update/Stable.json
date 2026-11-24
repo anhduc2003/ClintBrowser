@@ -1,12 +1,12 @@
 {
-  "version": "1.2.8",
-  "changelog": "# Clint Browser v1.2.8\n\n## What's New\n\n### YouTube downloads\n\nMedia Capture can now download the YouTube video you're watching, with nothing else to install.\n\n- Open the media menu on a YouTube video and Clint reads the streams itself: 360p with audio ready to save, H.264 video from 144p up to 1080p, and an AAC audio track.\n- Pick a video quality and Clint downloads the video and the audio, then joins them into one MP4.\n- Pick the audio row to keep only the sound as an `.m4a` file, which plays in any music player.\n- Files are named after the video's title instead of the tab title.\n- If a video is private, age-restricted, or needs a signed-in account, the menu says why in plain words and offers a retry button instead of failing silently.\n- The old **Get YTDLnis** screen is gone.\n\n---\n\n## Notes\n\n- YouTube's download links are signed and expire after a few hours, so Clint asks for fresh ones every time you open the media menu. Start the download right after opening it and the link stays valid.\n\n---",
+  "version": "1.2.9",
+  "changelog": "# Clint Browser v1.2.9\n\n## What's New\n\n### Comic translation\n\nReading manhwa or manga in Clint no longer means leaving the page for every panel.\n\n- New **Translate comic page** in the browser menu (and as an optional toolbar button). Clint freezes the page, finds the text inside the images, groups it into speech bubbles, translates every bubble, and draws the translation over the artwork in place.\n- Translation runs on the device with the same offline models the page translator already uses, so the text never leaves your phone.\n- Pick the target language right on the overlay and Clint remembers it. **Original** flips the bubbles back to the source text, and **Auto** translates that site every time a chapter loads.\n- Korean, Japanese and Chinese lettering is recognised alongside Latin script, so raw manhwa works as well as scanlations.\n- When a language pack is missing, the overlay tells you how big it is and downloads it only after you tap the button.\n\n---\n\n## Notes\n\n- Translation covers what is on screen. Scroll to the next part of the chapter and translate again, or turn on **Auto** for a site you read often.\n- Reading the text uses ML Kit, which is not open source, so it is bundled in the GitHub build only. The FOSS build hides the menu item.\n\n---\n\n## Removed\n\n- The YouTube download added in v1.2.8 is gone. YouTube answers the app's player request with a bot check on most networks, so the feature could not be relied on; Media Capture hands YouTube pages to YTDLnis again.\n\n---",
   "downloads": {
-    "arm64-v8a": "https://github.com/anhduc2003/ClintBrowser/releases/download/v1.2.8/ClintBrowser-1.2.8-arm64-v8a.apk",
-    "armeabi-v7a": "https://github.com/anhduc2003/ClintBrowser/releases/download/v1.2.8/ClintBrowser-1.2.8-armeabi-v7a.apk",
-    "x86": "https://github.com/anhduc2003/ClintBrowser/releases/download/v1.2.8/ClintBrowser-1.2.8-x86.apk",
-    "x86_64": "https://github.com/anhduc2003/ClintBrowser/releases/download/v1.2.8/ClintBrowser-1.2.8-x86_64.apk",
-    "universal": "https://github.com/anhduc2003/ClintBrowser/releases/download/v1.2.8/ClintBrowser-1.2.8-universal.apk"
+    "arm64-v8a": "https://github.com/anhduc2003/ClintBrowser/releases/download/v1.2.9/ClintBrowser-1.2.9-arm64-v8a.apk",
+    "armeabi-v7a": "https://github.com/anhduc2003/ClintBrowser/releases/download/v1.2.9/ClintBrowser-1.2.9-armeabi-v7a.apk",
+    "x86": "https://github.com/anhduc2003/ClintBrowser/releases/download/v1.2.9/ClintBrowser-1.2.9-x86.apk",
+    "x86_64": "https://github.com/anhduc2003/ClintBrowser/releases/download/v1.2.9/ClintBrowser-1.2.9-x86_64.apk",
+    "universal": "https://github.com/anhduc2003/ClintBrowser/releases/download/v1.2.9/ClintBrowser-1.2.9-universal.apk"
   },
-  "versionCode": 49
+  "versionCode": 50
 }
