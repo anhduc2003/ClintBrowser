@@ -4,6 +4,29 @@ All notable changes to Clint Browser are documented here.
 
 ---
 
+# v1.2.8
+
+## What's New
+
+### YouTube downloads
+
+Media Capture can now download the YouTube video you're watching, with nothing else to install.
+
+- Open the media menu on a YouTube video and Clint reads the streams itself: 360p with audio ready to save, H.264 video from 144p up to 1080p, and an AAC audio track.
+- Pick a video quality and Clint downloads the video and the audio, then joins them into one MP4.
+- Pick the audio row to keep only the sound as an `.m4a` file, which plays in any music player.
+- Files are named after the video's title instead of the tab title.
+- If a video is private, age-restricted, or needs a signed-in account, the menu says why in plain words and offers a retry button instead of failing silently.
+- The old **Get YTDLnis** screen is gone.
+
+---
+
+## Notes
+
+- YouTube's download links are signed and expire after a few hours, so Clint asks for fresh ones every time you open the media menu. Start the download right after opening it and the link stays valid.
+
+---
+
 # v1.2.7-r2
 
 This is a small emergency update for v1.2.7. It fixes a problem you reported right after the release and adds a few things you asked for. Thank you all for the quick reports!
