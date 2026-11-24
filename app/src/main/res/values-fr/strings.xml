@@ -2157,9 +2157,6 @@
     <string name="media_capture_deselect_all">Tout désélectionner</string>
     <string name="media_capture_download_selected">Télécharger (%1$d)</string>
     <string name="media_capture_empty_state">Aucun média détecté sur cette page pour le moment. Lancez une vidéo ou une piste audio pour qu\'elle soit détectée ici.</string>
-    <string name="media_capture_youtube_title">Les vidéos YouTube ne peuvent pas être capturées</string>
-    <string name="media_capture_youtube_message">YouTube découpe ses vidéos en segments protégés que la capture de médias ne peut pas enregistrer. Installez YTDLnis pour les télécharger, et la capture de médias lui enverra directement les vidéos YouTube.</string>
-    <string name="media_capture_youtube_get_ytdlnis">Obtenir YTDLnis</string>
     <string name="media_capture_section_video">VIDÉO</string>
     <string name="media_capture_section_audio">AUDIO</string>
     <string name="media_capture_section_subtitles">SOUS-TITRES</string>

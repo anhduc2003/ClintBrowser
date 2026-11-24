@@ -2139,9 +2139,6 @@
     <string name="media_capture_deselect_all">Bỏ chọn tất cả</string>
     <string name="media_capture_download_selected">Tải xuống (%1$d)</string>
     <string name="media_capture_empty_state">Chưa phát hiện phương tiện nào trên trang này. Hãy phát một video hoặc bản âm thanh để phát hiện ở đây.</string>
-    <string name="media_capture_youtube_title">Không thể thu thập video YouTube</string>
-    <string name="media_capture_youtube_message">YouTube chia video của họ thành các phần được bảo vệ mà Media Capture không thể lưu. Hãy cài YTDLnis để tải chúng, và Media Capture sẽ gửi thẳng video YouTube đến đó.</string>
-    <string name="media_capture_youtube_get_ytdlnis">Tải YTDLnis</string>
     <string name="media_capture_section_video">VIDEO</string>
     <string name="media_capture_section_audio">ÂM THANH</string>
     <string name="media_capture_section_subtitles">PHỤ ĐỀ</string>

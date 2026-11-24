@@ -2246,9 +2246,6 @@
     <string name="media_capture_deselect_all">Alisin ang lahat ng napili</string>
     <string name="media_capture_download_selected">I-download (%1$d)</string>
     <string name="media_capture_empty_state">Wala pang na-detect na media sa page na ito. I-play ang isang video o audio track para ma-detect ito rito.</string>
-    <string name="media_capture_youtube_title">Hindi makukuha ang mga video sa YouTube</string>
-    <string name="media_capture_youtube_message">Hinahati ng YouTube ang mga video nito sa mga protektadong piraso na hindi kayang i-save ng Media Capture. I-install ang YTDLnis para ma-download ang mga ito, at diretso nang ipapasa ng Media Capture doon ang mga video sa YouTube.</string>
-    <string name="media_capture_youtube_get_ytdlnis">Kunin ang YTDLnis</string>
     <string name="media_capture_section_video">VIDEO</string>
     <string name="media_capture_section_audio">AUDIO</string>
     <string name="media_capture_section_subtitles">SUBTITLES</string>

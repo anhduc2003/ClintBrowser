@@ -2241,9 +2241,6 @@
     <string name="media_capture_deselect_all">सभी का चयन हटाएं</string>
     <string name="media_capture_download_selected">डाउनलोड करें (%1$d)</string>
     <string name="media_capture_empty_state">इस पेज पर अभी तक कोई मीडिया नहीं मिला। इसे यहां दिखाने के लिए कोई वीडियो या ऑडियो चलाएं।</string>
-    <string name="media_capture_youtube_title">YouTube वीडियो कैप्चर नहीं किए जा सकते</string>
-    <string name="media_capture_youtube_message">YouTube अपने वीडियो को सुरक्षित टुकड़ों में बांटकर चलाता है, जिन्हें Media Capture सेव नहीं कर सकता। इन्हें डाउनलोड करने के लिए YTDLnis इंस्टॉल करें, फिर Media Capture YouTube वीडियो सीधे उसी में भेज देगा।</string>
-    <string name="media_capture_youtube_get_ytdlnis">YTDLnis पाएं</string>
     <string name="media_capture_section_video">वीडियो</string>
     <string name="media_capture_section_audio">ऑडियो</string>
     <string name="media_capture_section_subtitles">सबटाइटल</string>

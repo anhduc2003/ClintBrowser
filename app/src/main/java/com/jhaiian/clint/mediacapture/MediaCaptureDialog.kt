@@ -57,6 +57,7 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -125,7 +126,8 @@ fun MediaCaptureDialog(
     onDownload: (DetectedMedia, DetectedMedia?, List<DetectedMedia>, Long?, String?) -> Unit,
     onDownloadSelected: (List<MediaCaptureEntry>, List<DetectedMedia>) -> Unit,
     isYouTube: Boolean = false,
-    onGetYtdlnis: () -> Unit = {}
+    youtubeState: YoutubeDialogState = YoutubeDialogState.None,
+    onRetryYoutube: () -> Unit = {}
 ) {
     val colors = LocalClintColors.current
     val context = LocalContext.current
@@ -191,7 +193,8 @@ fun MediaCaptureDialog(
 
     val selectedBytes = selectedEntries.sumOf { mediaCaptureEntryBytes(it) ?: 0L }
     val statusText = when {
-        isYouTube -> null
+        isYouTube && youtubeState is YoutubeDialogState.Loading && detectedItems.isEmpty() ->
+            stringResource(R.string.media_capture_youtube_loading)
         selectionMode -> {
             val base = stringResource(R.string.media_capture_selected_count, selectedEntries.size)
             if (selectedBytes > 0L) {
@@ -222,12 +225,11 @@ fun MediaCaptureDialog(
                 .imePadding()
         ) {
             MediaCaptureHeader(
-                count = if (isYouTube) 0 else detectedItems.size,
+                count = detectedItems.size,
                 statusText = statusText,
                 sortMode = sortMode,
                 onSortSelected = { MediaCaptureSortState.mode = it },
                 onDismiss = onDismiss,
-                showActions = !isYouTube,
                 selectionMode = selectionMode,
                 onToggleSelection = {
                     selectionMode = !selectionMode
@@ -238,30 +240,31 @@ fun MediaCaptureDialog(
                 onToggleSettings = { settingsOpen = !settingsOpen }
             )
             HorizontalDivider(color = colors.popupStroke)
-            if (!isYouTube) {
-                AnimatedVisibility(visible = settingsOpen) {
-                    Column {
-                        MediaCaptureSettingsPanel(
-                            convertTsToMp4 = convertTsToMp4,
-                            onConvertTsChange = { checked ->
-                                convertTsToMp4 = checked
-                                prefs.edit().putBoolean(MEDIA_CAPTURE_CONVERT_TS_TO_MP4_PREF, checked).apply()
-                            },
-                            filter = sizeFilter,
-                            onFilterChange = updateFilter,
-                            modifier = Modifier
-                                .heightIn(max = maxSheetHeight * 0.6f)
-                                .verticalScroll(rememberScrollState())
-                        )
-                        HorizontalDivider(color = colors.popupStroke)
-                    }
-                }
-                if (sizeFilter.enabled && hiddenRows > 0) {
-                    MediaCaptureFilterBanner(sizeFilter) { updateFilter(sizeFilter.copy(enabled = false)) }
+            AnimatedVisibility(visible = settingsOpen) {
+                Column {
+                    MediaCaptureSettingsPanel(
+                        convertTsToMp4 = convertTsToMp4,
+                        onConvertTsChange = { checked ->
+                            convertTsToMp4 = checked
+                            prefs.edit().putBoolean(MEDIA_CAPTURE_CONVERT_TS_TO_MP4_PREF, checked).apply()
+                        },
+                        filter = sizeFilter,
+                        onFilterChange = updateFilter,
+                        modifier = Modifier
+                            .heightIn(max = maxSheetHeight * 0.6f)
+                            .verticalScroll(rememberScrollState())
+                    )
+                    HorizontalDivider(color = colors.popupStroke)
                 }
             }
-            if (isYouTube) {
-                MediaCaptureYouTubeState(Modifier.weight(1f, fill = false), onGetYtdlnis)
+            if (sizeFilter.enabled && hiddenRows > 0) {
+                MediaCaptureFilterBanner(sizeFilter) { updateFilter(sizeFilter.copy(enabled = false)) }
+            }
+            val youtubeFailure = (youtubeState as? YoutubeDialogState.Failed)?.takeIf { isYouTube && detectedItems.isEmpty() }
+            if (isYouTube && youtubeState is YoutubeDialogState.Loading && detectedItems.isEmpty()) {
+                MediaCaptureYouTubeLoading(Modifier.weight(1f, fill = false))
+            } else if (youtubeFailure != null) {
+                MediaCaptureYouTubeError(Modifier.weight(1f, fill = false), youtubeFailure.reason, onRetryYoutube)
             } else if (detectedItems.isEmpty()) {
                 MediaCaptureEmptyState()
             } else if (visibleRows == 0) {
@@ -415,6 +418,8 @@ fun suggestMediaCaptureFilename(media: DetectedMedia, pageTitle: String, contain
     val ext = when {
         media.kind == MediaKind.SUBTITLE && (media.isHlsPlaylist || media.format.equals("HLS", true)) -> "vtt"
         media.format.equals("HLS", true) || media.format.equals("DASH", true) -> containerExtension ?: "mp4"
+        media.format.equals(YoutubeMediaExtractor.DIRECT_FORMAT, true) ->
+            if (media.kind == MediaKind.AUDIO) "m4a" else containerExtension ?: "mp4"
         else -> media.format.lowercase()
     }
     return "${sanitizeMediaCaptureFilenameBase(pageTitle)}.$ext"
@@ -426,8 +431,9 @@ private fun sanitizeMediaCaptureFilenameBase(title: String): String {
 }
 
 fun isMediaCaptureManifestBased(media: DetectedMedia): Boolean =
-    media.kind != MediaKind.SUBTITLE && media.groupUrl != null &&
-        (media.format.equals("HLS", true) || media.format.equals("DASH", true))
+    media.kind == MediaKind.VIDEO && media.groupUrl != null &&
+        (media.format.equals("HLS", true) || media.format.equals("DASH", true) ||
+            media.format.equals(YoutubeMediaExtractor.DIRECT_FORMAT, true))
 
 @Composable
 private fun MediaCaptureHeader(
@@ -436,7 +442,6 @@ private fun MediaCaptureHeader(
     sortMode: MediaCaptureSort,
     onSortSelected: (MediaCaptureSort) -> Unit,
     onDismiss: () -> Unit,
-    showActions: Boolean,
     selectionMode: Boolean,
     onToggleSelection: () -> Unit,
     settingsOpen: Boolean,
@@ -465,7 +470,7 @@ private fun MediaCaptureHeader(
                 )
             }
         }
-        if (showActions && count > 0) {
+        if (count > 0) {
             IconButton(onClick = onToggleSelection, modifier = Modifier.size(40.dp)) {
                 Icon(
                     Icons.Filled.Checklist,
@@ -474,14 +479,12 @@ private fun MediaCaptureHeader(
                 )
             }
         }
-        if (showActions) {
-            IconButton(onClick = onToggleSettings, modifier = Modifier.size(40.dp)) {
-                Icon(
-                    Icons.Filled.Tune,
-                    contentDescription = stringResource(R.string.media_capture_settings),
-                    tint = if (settingsOpen || filterActive) colors.primary else colors.iconTint
-                )
-            }
+        IconButton(onClick = onToggleSettings, modifier = Modifier.size(40.dp)) {
+            Icon(
+                Icons.Filled.Tune,
+                contentDescription = stringResource(R.string.media_capture_settings),
+                tint = if (settingsOpen || filterActive) colors.primary else colors.iconTint
+            )
         }
         if (count > 1) {
             Box {
@@ -740,7 +743,31 @@ private fun MediaCaptureAllHiddenState(modifier: Modifier, filter: MediaCaptureS
 }
 
 @Composable
-private fun MediaCaptureYouTubeState(modifier: Modifier, onGetYtdlnis: () -> Unit) {
+private fun MediaCaptureYouTubeLoading(modifier: Modifier) {
+    val colors = LocalClintColors.current
+    Column(
+        modifier
+            .fillMaxWidth()
+            .padding(vertical = 40.dp, horizontal = 24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        CircularProgressIndicator(
+            color = colors.primary,
+            strokeWidth = 2.dp,
+            modifier = Modifier.size(28.dp)
+        )
+        Text(
+            stringResource(R.string.media_capture_youtube_loading),
+            color = colors.secondaryText,
+            fontSize = 13.sp,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(top = 14.dp)
+        )
+    }
+}
+
+@Composable
+private fun MediaCaptureYouTubeError(modifier: Modifier, reason: String, onRetry: () -> Unit) {
     val colors = LocalClintColors.current
     Column(
         modifier
@@ -756,32 +783,14 @@ private fun MediaCaptureYouTubeState(modifier: Modifier, onGetYtdlnis: () -> Uni
             modifier = Modifier.size(40.dp)
         )
         Text(
-            stringResource(R.string.media_capture_youtube_title),
-            color = colors.popupText,
-            fontSize = 15.sp,
-            fontWeight = FontWeight.SemiBold,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = 12.dp)
-        )
-        Text(
-            stringResource(R.string.media_capture_youtube_message),
+            stringResource(R.string.media_capture_youtube_failed, reason),
             color = colors.secondaryText,
             fontSize = 13.sp,
             textAlign = TextAlign.Center,
-            modifier = Modifier.widthIn(max = 480.dp).padding(top = 8.dp)
+            modifier = Modifier.widthIn(max = 480.dp).padding(top = 12.dp)
         )
-        Button(
-            onClick = onGetYtdlnis,
-            colors = ButtonDefaults.buttonColors(containerColor = colors.primary, contentColor = colors.onPrimary),
-            shape = RoundedCornerShape(24.dp),
-            modifier = Modifier.padding(top = 20.dp)
-        ) {
-            Icon(Icons.Filled.Download, contentDescription = null, modifier = Modifier.size(18.dp))
-            Text(
-                stringResource(R.string.media_capture_youtube_get_ytdlnis),
-                fontSize = 14.sp,
-                modifier = Modifier.padding(start = 8.dp)
-            )
+        TextButton(onClick = onRetry, modifier = Modifier.padding(top = 12.dp)) {
+            Text(stringResource(R.string.media_capture_youtube_retry), color = colors.primary, fontSize = 13.sp)
         }
     }
 }

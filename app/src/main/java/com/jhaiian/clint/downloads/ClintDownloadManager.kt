@@ -619,8 +619,7 @@ object ClintDownloadManager {
     ) {
         val primaryUrl = item.streamVideoUrl.ifBlank { item.url }
         val request = com.jhaiian.clint.mediacapture.download.StreamDownloadRequest(
-            format = if (item.streamFormat == "DASH") com.jhaiian.clint.mediacapture.download.StreamContainerFormat.DASH
-            else com.jhaiian.clint.mediacapture.download.StreamContainerFormat.HLS,
+            format = com.jhaiian.clint.mediacapture.download.streamContainerFormatOf(item.streamFormat),
             videoUrl = if (item.streamPrimaryIsAudio) null else primaryUrl,
             audioUrl = if (item.streamPrimaryIsAudio) primaryUrl else item.streamAudioUrl,
             subtitleUrl = item.streamSubtitleUrl,
@@ -751,8 +750,7 @@ object ClintDownloadManager {
             streamSubtitleUrl = request.subtitleUrl,
             streamFormat = when {
                 request.subtitleOnly -> com.jhaiian.clint.mediacapture.download.STREAM_FORMAT_HLS_SUBTITLE
-                request.format == com.jhaiian.clint.mediacapture.download.StreamContainerFormat.DASH -> "DASH"
-                else -> "HLS"
+                else -> request.format.name
             },
             streamPageUrl = request.pageUrl,
             pageUrl = request.pageUrl,
