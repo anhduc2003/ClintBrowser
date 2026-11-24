@@ -1,12 +1,12 @@
 {
-  "version": "1.2.9",
-  "changelog": "# Clint Browser v1.2.9\n\n## What's New\n\n### Comic translation\n\nReading manhwa or manga in Clint no longer means leaving the page for every panel.\n\n- New **Translate comic page** in the browser menu (and as an optional toolbar button). Clint freezes the page, finds the text inside the images, groups it into speech bubbles, translates every bubble, and draws the translation over the artwork in place.\n- Translation runs on the device with the same offline models the page translator already uses, so the text never leaves your phone.\n- Pick the target language right on the overlay and Clint remembers it. **Original** flips the bubbles back to the source text, and **Auto** translates that site every time a chapter loads.\n- Korean, Japanese and Chinese lettering is recognised alongside Latin script, so raw manhwa works as well as scanlations.\n- When a language pack is missing, the overlay tells you how big it is and downloads it only after you tap the button.\n\n---\n\n## Notes\n\n- Translation covers what is on screen. Scroll to the next part of the chapter and translate again, or turn on **Auto** for a site you read often.\n- Reading the text uses ML Kit, which is not open source, so it is bundled in the GitHub build only. The FOSS build hides the menu item.\n\n---\n\n## Removed\n\n- The YouTube download added in v1.2.8 is gone. YouTube answers the app's player request with a bot check on most networks, so the feature could not be relied on; Media Capture hands YouTube pages to YTDLnis again.\n\n---",
+  "version": "1.2.10",
+  "changelog": "# Clint Browser v1.2.10\n\n## Bug Fixes\n\n- **Translate comic page** now shows what it is doing instead of appearing to do nothing. The overlay opens the moment you tap the menu entry, screen capture gives up after a few seconds and reports that it failed, and a translation that stalls ends with an error instead of a frozen screen.\n- Capturing the page now falls back to drawing the view when the fast GPU capture is unavailable, so devices that refused the first method still get a translation.\n\n---",
   "downloads": {
-    "arm64-v8a": "https://github.com/anhduc2003/ClintBrowser/releases/download/v1.2.9/ClintBrowser-1.2.9-arm64-v8a.apk",
-    "armeabi-v7a": "https://github.com/anhduc2003/ClintBrowser/releases/download/v1.2.9/ClintBrowser-1.2.9-armeabi-v7a.apk",
-    "x86": "https://github.com/anhduc2003/ClintBrowser/releases/download/v1.2.9/ClintBrowser-1.2.9-x86.apk",
-    "x86_64": "https://github.com/anhduc2003/ClintBrowser/releases/download/v1.2.9/ClintBrowser-1.2.9-x86_64.apk",
-    "universal": "https://github.com/anhduc2003/ClintBrowser/releases/download/v1.2.9/ClintBrowser-1.2.9-universal.apk"
+    "arm64-v8a": "https://github.com/anhduc2003/ClintBrowser/releases/download/v1.2.10/ClintBrowser-1.2.10-arm64-v8a.apk",
+    "armeabi-v7a": "https://github.com/anhduc2003/ClintBrowser/releases/download/v1.2.10/ClintBrowser-1.2.10-armeabi-v7a.apk",
+    "x86": "https://github.com/anhduc2003/ClintBrowser/releases/download/v1.2.10/ClintBrowser-1.2.10-x86.apk",
+    "x86_64": "https://github.com/anhduc2003/ClintBrowser/releases/download/v1.2.10/ClintBrowser-1.2.10-x86_64.apk",
+    "universal": "https://github.com/anhduc2003/ClintBrowser/releases/download/v1.2.10/ClintBrowser-1.2.10-universal.apk"
   },
-  "versionCode": 50
+  "versionCode": 51
 }
