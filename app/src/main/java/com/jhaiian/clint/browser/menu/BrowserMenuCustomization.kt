@@ -11,6 +11,7 @@ import androidx.compose.material.icons.automirrored.filled.VolumeOff
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.automirrored.filled.AddToHomeScreen
+import androidx.compose.material.icons.filled.AutoStories
 import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.Contrast
@@ -41,6 +42,7 @@ enum class CustomizableMenuItem(val id: String, val defaultSection: MenuSection)
     CREATE_FAVORITE("create_favorite", MenuSection.LIST),
     DOWNLOADS("downloads", MenuSection.GRID),
     MEDIA_CAPTURE("media_capture", MenuSection.TOGGLES),
+    COMIC_TRANSLATE("comic_translate", MenuSection.TOGGLES),
     USER_SCRIPTS("userscripts", MenuSection.TOGGLES),
     QUIVER_GUARD("quiver_guard", MenuSection.TOGGLES),
     DISABLE_QUIVER_GUARD_FOR_SITE("disable_quiver_guard_for_site", MenuSection.LIST),
@@ -147,6 +149,7 @@ fun CustomizableMenuItem.icon(): ImageVector = when (this) {
     CustomizableMenuItem.CREATE_FAVORITE -> Icons.Filled.StarBorder
     CustomizableMenuItem.DOWNLOADS -> Icons.Filled.Download
     CustomizableMenuItem.MEDIA_CAPTURE -> Icons.Filled.VideoLibrary
+    CustomizableMenuItem.COMIC_TRANSLATE -> Icons.Filled.AutoStories
     CustomizableMenuItem.USER_SCRIPTS -> Icons.Filled.Code
     CustomizableMenuItem.QUIVER_GUARD -> Icons.Filled.Security
     CustomizableMenuItem.DISABLE_QUIVER_GUARD_FOR_SITE -> Icons.Filled.Security
@@ -174,6 +177,7 @@ fun CustomizableMenuItem.titleRes(): Int = when (this) {
     CustomizableMenuItem.CREATE_FAVORITE -> R.string.menu_create_favorite
     CustomizableMenuItem.DOWNLOADS -> R.string.menu_downloads
     CustomizableMenuItem.MEDIA_CAPTURE -> R.string.menu_media_capture
+    CustomizableMenuItem.COMIC_TRANSLATE -> R.string.menu_comic_translate
     CustomizableMenuItem.USER_SCRIPTS -> R.string.user_scripts_title
     CustomizableMenuItem.QUIVER_GUARD -> R.string.menu_quiver_guard
     CustomizableMenuItem.DISABLE_QUIVER_GUARD_FOR_SITE -> R.string.menu_disable_quiver_guard_for_site

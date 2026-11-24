@@ -399,6 +399,7 @@ internal fun MainActivity.onPageFinished(url: String) {
     nestedScrollActive = false
     canvasTouchActive = false
     updateBookmarkIcon()
+    maybeAutoTranslateComic(url)
 
     tabManager.activeTab?.let { tab ->
         onQuiverGuardPageFinished(tab, url)

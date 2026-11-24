@@ -86,6 +86,7 @@ import androidx.preference.PreferenceManager
 import com.jhaiian.clint.R
 import com.jhaiian.clint.bookmarks.BookmarkManager
 import com.jhaiian.clint.browser.MainActivity
+import com.jhaiian.clint.browser.delegates.onMenuComicTranslate
 import com.jhaiian.clint.browser.delegates.openSiteInfo
 import com.jhaiian.clint.browser.delegates.resolveWebThemeFollow
 import com.jhaiian.clint.browser.home.isClintHomeUrl
@@ -163,6 +164,7 @@ internal class BrowserMenuActions(
     val onDownloads: () -> Unit = {},
     val onOpenDownloadSettings: () -> Unit = {},
     val onMediaCapture: () -> Unit = {},
+    val onComicTranslate: () -> Unit = {},
     val onUserScripts: () -> Unit = {},
     val onOpenUserScriptsSettings: () -> Unit = {},
     val onQuiverGuard: () -> Unit = {},
@@ -282,6 +284,7 @@ internal fun MainActivity.buildMenuActions(dismiss: () -> Unit): BrowserMenuActi
     onDownloads = { dismiss(); onMenuDownloads() },
     onOpenDownloadSettings = { dismiss(); onMenuOpenDownloadSettings() },
     onMediaCapture = { dismiss(); onMenuMediaCapture() },
+    onComicTranslate = { dismiss(); onMenuComicTranslate() },
     onUserScripts = { dismiss(); onMenuUserScripts() },
     onOpenUserScriptsSettings = { dismiss(); onMenuOpenUserScriptsSettings() },
     onBookmarks = { dismiss(); onMenuBookmarks() },
@@ -524,6 +527,11 @@ private fun menuEntryFor(
             item, item.icon(), label,
             checked = snapshot.isMediaCaptureEnabled,
             onClick = actions.onMediaCapture
+        )
+        CustomizableMenuItem.COMIC_TRANSLATE -> MenuEntryUi(
+            item, item.icon(), label,
+            enabled = snapshot.isWebPage && com.jhaiian.clint.comictranslate.ComicTranslateSupport.available,
+            onClick = actions.onComicTranslate
         )
         CustomizableMenuItem.USER_SCRIPTS -> MenuEntryUi(
             item, item.icon(), label,

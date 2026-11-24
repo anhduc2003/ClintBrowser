@@ -1,4 +1,5 @@
 package com.jhaiian.clint.browser
+import androidx.compose.material.icons.filled.AutoStories
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LockOpen
@@ -73,6 +74,7 @@ import com.jhaiian.clint.browser.delegates.clipboardHasText
 import com.jhaiian.clint.browser.delegates.copyCurrentPageLink
 import com.jhaiian.clint.browser.delegates.pasteAndGo
 import com.jhaiian.clint.browser.delegates.pasteIntoSearch
+import com.jhaiian.clint.browser.delegates.onMenuComicTranslate
 import com.jhaiian.clint.browser.delegates.openTranslatePage
 import com.jhaiian.clint.ui.theme.LocalClintColors
 
@@ -363,6 +365,24 @@ internal fun AddressBarRow(
                                     )
                                 }
                             }
+                        }
+                    }
+                }
+                com.jhaiian.clint.browser.toolbar.ToolbarButton.COMIC_TRANSLATE -> {
+                    Box(modifier = Modifier.padding(start = 10.dp).size(34.dp)) {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier
+                                .matchParentSize()
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable { activity.onMenuComicTranslate() }
+                        ) {
+                            Icon(
+                                imageVector = androidx.compose.material.icons.Icons.Filled.AutoStories,
+                                contentDescription = stringResource(R.string.menu_comic_translate),
+                                tint = colors.iconTint,
+                                modifier = Modifier.size(20.dp)
+                            )
                         }
                     }
                 }

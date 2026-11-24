@@ -4,6 +4,35 @@ All notable changes to Clint Browser are documented here.
 
 ---
 
+# v1.2.9
+
+## What's New
+
+### Comic translation
+
+Reading manhwa or manga in Clint no longer means leaving the page for every panel.
+
+- New **Translate comic page** in the browser menu (and as an optional toolbar button). Clint freezes the page, finds the text inside the images, groups it into speech bubbles, translates every bubble, and draws the translation over the artwork in place.
+- Translation runs on the device with the same offline models the page translator already uses, so the text never leaves your phone.
+- Pick the target language right on the overlay and Clint remembers it. **Original** flips the bubbles back to the source text, and **Auto** translates that site every time a chapter loads.
+- Korean, Japanese and Chinese lettering is recognised alongside Latin script, so raw manhwa works as well as scanlations.
+- When a language pack is missing, the overlay tells you how big it is and downloads it only after you tap the button.
+
+---
+
+## Notes
+
+- Translation covers what is on screen. Scroll to the next part of the chapter and translate again, or turn on **Auto** for a site you read often.
+- Reading the text uses ML Kit, which is not open source, so it is bundled in the GitHub build only. The FOSS build hides the menu item.
+
+---
+
+## Removed
+
+- The YouTube download added in v1.2.8 is gone. YouTube answers the app's player request with a bot check on most networks, so the feature could not be relied on; Media Capture hands YouTube pages to YTDLnis again.
+
+---
+
 # v1.2.8
 
 ## What's New

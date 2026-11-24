@@ -26,8 +26,8 @@ android {
         applicationId = "com.jhaiian.clint"
         minSdk = 26
         targetSdk = 37
-        versionCode = 49
-        versionName = "v1.2.8"
+        versionCode = 50
+        versionName = "v1.2.9"
     }
 
     val hasSigningConfig = localProperties.getProperty("signingConfig.storePassword") != null
@@ -167,4 +167,16 @@ dependencies {
     implementation("androidx.compose.material3.adaptive:adaptive-layout")
     implementation("androidx.compose.material3.adaptive:adaptive-navigation")
     implementation("androidx.activity:activity-compose:1.13.0")
+
+    // Comic translation reads text with ML Kit's on-device recognizers. ML Kit is
+    // closed source, so only the github flavor bundles it; the FOSS flavor compiles
+    // against it and hides the feature at runtime.
+    "githubImplementation"("com.google.mlkit:text-recognition:16.0.1")
+    "githubImplementation"("com.google.mlkit:text-recognition-korean:16.0.1")
+    "githubImplementation"("com.google.mlkit:text-recognition-japanese:16.0.1")
+    "githubImplementation"("com.google.mlkit:text-recognition-chinese:16.0.1")
+    "fossCompileOnly"("com.google.mlkit:text-recognition:16.0.1")
+    "fossCompileOnly"("com.google.mlkit:text-recognition-korean:16.0.1")
+    "fossCompileOnly"("com.google.mlkit:text-recognition-japanese:16.0.1")
+    "fossCompileOnly"("com.google.mlkit:text-recognition-chinese:16.0.1")
 }

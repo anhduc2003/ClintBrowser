@@ -7,6 +7,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AutoStories
 import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.FindInPage
@@ -46,6 +47,7 @@ fun searchBarShape(shape: String): Shape = when (shape) {
 
 enum class ToolbarButton(val id: String, val canHide: Boolean) {
     MEDIA_CAPTURE("media_capture", true),
+    COMIC_TRANSLATE("comic_translate", true),
     PROFILE("profile", true),
     TAB_COUNT("tab_count", true),
     MENU("menu", false);
@@ -57,6 +59,7 @@ enum class ToolbarButton(val id: String, val canHide: Boolean) {
 
 fun ToolbarButton.icon(): ImageVector = when (this) {
     ToolbarButton.MEDIA_CAPTURE -> Icons.Filled.VideoLibrary
+    ToolbarButton.COMIC_TRANSLATE -> Icons.Filled.AutoStories
     ToolbarButton.PROFILE -> Icons.Filled.AccountCircle
     ToolbarButton.TAB_COUNT -> Icons.Filled.Tab
     ToolbarButton.MENU -> Icons.Filled.MoreVert
@@ -64,6 +67,7 @@ fun ToolbarButton.icon(): ImageVector = when (this) {
 
 fun ToolbarButton.titleRes(): Int = when (this) {
     ToolbarButton.MEDIA_CAPTURE -> R.string.menu_media_capture
+    ToolbarButton.COMIC_TRANSLATE -> R.string.menu_comic_translate
     ToolbarButton.PROFILE -> R.string.profiles_toolbar_button
     ToolbarButton.TAB_COUNT -> R.string.toolbar_customization_tab_counter
     ToolbarButton.MENU -> R.string.menu
