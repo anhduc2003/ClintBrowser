@@ -2277,6 +2277,8 @@
     <string name="comic_translate_translated">Translation</string>
     <string name="comic_translate_auto_short">Auto</string>
     <string name="comic_translate_close">Close</string>
+    <string name="comic_translate_via_online">online</string>
+    <string name="comic_translate_via_device">on device</string>
     <string name="comic_translate_unavailable">Comic translation isn\'t available in this build.</string>
     <string name="comic_translate_capture_failed">Couldn\'t capture this page.</string>
     <string name="media_capture_section_video">VIDEO</string>

@@ -2157,6 +2157,8 @@
     <string name="comic_translate_translated">Bản dịch</string>
     <string name="comic_translate_auto_short">Tự động</string>
     <string name="comic_translate_close">Đóng</string>
+    <string name="comic_translate_via_online">qua mạng</string>
+    <string name="comic_translate_via_device">trên máy</string>
     <string name="comic_translate_unavailable">Bản dựng này không có tính năng dịch truyện.</string>
     <string name="comic_translate_capture_failed">Không chụp được trang này.</string>
     <string name="media_capture_section_video">VIDEO</string>

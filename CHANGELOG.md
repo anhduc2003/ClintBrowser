@@ -4,6 +4,14 @@ All notable changes to Clint Browser are documented here.
 
 ---
 
+# v1.2.11
+
+## Bug Fixes
+
+- **Translate comic page** now gets a translation even when the offline language pack is missing or the on-device engine refuses to load. It still prefers the on-device engine when that pack is installed and falls back to Google Translate otherwise, sending only the lines it read from the image. The overlay subtitle says which engine produced the text.
+
+---
+
 # v1.2.10
 
 ## Bug Fixes

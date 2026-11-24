@@ -18,11 +18,14 @@ data class ComicTextBlock(
     val translation: String? = null
 )
 
+enum class ComicTranslationProvider { ON_DEVICE, ONLINE }
+
 data class ComicTranslationPage(
     val bitmap: Bitmap,
     val blocks: List<ComicTextBlock>,
     val sourceLanguage: String,
     val targetLanguage: String,
+    val provider: ComicTranslationProvider,
     val autoTranslateSite: Boolean
 )
 

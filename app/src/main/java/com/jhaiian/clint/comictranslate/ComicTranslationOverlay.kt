@@ -248,7 +248,11 @@ private fun ComicTopBar(
             )
             Text(
                 "${ClintTranslations.displayName(page.sourceLanguage, locale)} → " +
-                    ClintTranslations.displayName(page.targetLanguage, locale),
+                    ClintTranslations.displayName(page.targetLanguage, locale) + " · " +
+                    stringResource(
+                        if (page.provider == ComicTranslationProvider.ON_DEVICE) R.string.comic_translate_via_device
+                        else R.string.comic_translate_via_online
+                    ),
                 color = colors.secondaryText,
                 fontSize = 11.sp
             )
