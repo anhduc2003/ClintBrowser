@@ -30,10 +30,39 @@ object YoutubeMediaExtractor {
     const val DIRECT_FORMAT = "DIRECT"
 
     private const val PLAYER_ENDPOINT = "https://www.youtube.com/youtubei/v1/player?prettyPrint=false"
-    private const val CLIENT_NAME = "ANDROID_VR"
-    private const val CLIENT_VERSION = "1.60.19"
-    private const val USER_AGENT =
-        "com.google.android.apps.youtube.vr.oculus/1.60.19 (Linux; U; Android 12L; eureka-user Build/SQ3A.220605.009.A1) gzip"
+
+    private data class YoutubeClient(
+        val clientName: String,
+        val clientVersion: String,
+        val userAgent: String,
+        val deviceMake: String,
+        val deviceModel: String,
+        val osName: String,
+        val osVersion: String,
+        val androidSdkVersion: Int? = null
+    )
+
+    private val CLIENTS = listOf(
+        YoutubeClient(
+            clientName = "ANDROID_VR",
+            clientVersion = "1.60.19",
+            userAgent = "com.google.android.apps.youtube.vr.oculus/1.60.19 (Linux; U; Android 12L; eureka-user Build/SQ3A.220605.009.A1) gzip",
+            deviceMake = "Oculus",
+            deviceModel = "Quest 5",
+            osName = "Android",
+            osVersion = "12L",
+            androidSdkVersion = 32
+        ),
+        YoutubeClient(
+            clientName = "IOS",
+            clientVersion = "20.10.4",
+            userAgent = "com.google.ios.youtube/20.10.4 (iPhone16,2; U; CPU iOS 18_3_2 like Mac OS X;)",
+            deviceMake = "Apple",
+            deviceModel = "iPhone16,2",
+            osName = "iPhone",
+            osVersion = "18.3.2.22D82"
+        )
+    )
     private val VIDEO_ID = Regex("^[A-Za-z0-9_-]{11}$")
     private val JSON_MEDIA_TYPE = "application/json".toMediaType()
     private val YOUTUBE_DOMAINS = listOf("youtube.com", "youtu.be", "youtube-nocookie.com")
@@ -62,54 +91,57 @@ object YoutubeMediaExtractor {
     suspend fun extract(pageUrl: String): YoutubeExtraction = withContext(Dispatchers.IO) {
         val videoId = videoIdFrom(pageUrl)
             ?: return@withContext YoutubeExtraction.Failure("This link does not point at a single YouTube video")
-        val player = try {
-            requestPlayer(videoId)
-        } catch (e: IOException) {
-            return@withContext YoutubeExtraction.Failure(e.message ?: "Could not reach YouTube")
-        } catch (e: JSONException) {
-            return@withContext YoutubeExtraction.Failure("YouTube sent an unexpected response")
+        var failure = "Could not reach YouTube"
+        for (client in CLIENTS) {
+            val player = try {
+                requestPlayer(client, videoId)
+            } catch (e: IOException) {
+                failure = e.message ?: failure
+                continue
+            } catch (_: JSONException) {
+                failure = "YouTube sent an unexpected response"
+                continue
+            }
+            val status = player.optJSONObject("playabilityStatus")
+            val statusName = status?.optString("status").orEmpty()
+            if (statusName != "OK") {
+                failure = playabilityReason(status, statusName)
+                continue
+            }
+            val media = try {
+                buildMedia(pageUrl, videoId, player, client.userAgent)
+            } catch (_: JSONException) {
+                emptyList()
+            }
+            if (media.isEmpty()) {
+                failure = "YouTube did not offer a downloadable stream"
+                continue
+            }
+            val title = player.optJSONObject("videoDetails")?.optString("title").orEmpty().trim()
+            return@withContext YoutubeExtraction.Success(title.ifBlank { videoId }, media)
         }
-        val status = player.optJSONObject("playabilityStatus")
-        val statusName = status?.optString("status").orEmpty()
-        if (statusName != "OK") {
-            return@withContext YoutubeExtraction.Failure(playabilityReason(status, statusName))
-        }
-        val media = try {
-            buildMedia(pageUrl, videoId, player)
-        } catch (_: JSONException) {
-            emptyList()
-        }
-        if (media.isEmpty()) {
-            return@withContext YoutubeExtraction.Failure("YouTube did not offer a downloadable stream")
-        }
-        val title = player.optJSONObject("videoDetails")?.optString("title").orEmpty().trim()
-        YoutubeExtraction.Success(title.ifBlank { videoId }, media)
+        YoutubeExtraction.Failure(failure)
     }
 
-    private fun requestPlayer(videoId: String): JSONObject {
+    private fun requestPlayer(client: YoutubeClient, videoId: String): JSONObject {
+        val clientContext = JSONObject()
+            .put("clientName", client.clientName)
+            .put("clientVersion", client.clientVersion)
+            .put("deviceMake", client.deviceMake)
+            .put("deviceModel", client.deviceModel)
+            .put("osName", client.osName)
+            .put("osVersion", client.osVersion)
+            .put("hl", "en")
+            .put("gl", "US")
+        client.androidSdkVersion?.let { clientContext.put("androidSdkVersion", it) }
         val payload = JSONObject()
-            .put(
-                "context",
-                JSONObject().put(
-                    "client",
-                    JSONObject()
-                        .put("clientName", CLIENT_NAME)
-                        .put("clientVersion", CLIENT_VERSION)
-                        .put("deviceMake", "Oculus")
-                        .put("deviceModel", "Quest 5")
-                        .put("androidSdkVersion", 32)
-                        .put("osName", "Android")
-                        .put("osVersion", "12L")
-                        .put("hl", "en")
-                        .put("gl", "US")
-                )
-            )
+            .put("context", JSONObject().put("client", clientContext))
             .put("videoId", videoId)
             .put("contentCheckOk", true)
             .put("racyCheckOk", true)
         val request = Request.Builder()
             .url(PLAYER_ENDPOINT)
-            .header("User-Agent", USER_AGENT)
+            .header("User-Agent", client.userAgent)
             .post(payload.toString().toRequestBody(JSON_MEDIA_TYPE))
             .build()
         ClintDownloadManager.httpClient.newCall(request).execute().use { response ->
@@ -121,7 +153,11 @@ object YoutubeMediaExtractor {
     }
 
     private fun playabilityReason(status: JSONObject?, statusName: String): String {
-        status?.optString("reason")?.takeIf { it.isNotBlank() }?.let { return it }
+        val reported = status?.optString("reason")?.takeIf { it.isNotBlank() }
+        if (reported != null && reported.contains("not a bot", ignoreCase = true)) {
+            return "YouTube asked every client to confirm this is not a bot. Try again in a few minutes or on another network"
+        }
+        reported?.let { return it }
         val screen = status?.optJSONObject("errorScreen")
         val renderer = screen?.optJSONObject("playerErrorMessageRenderer")
         renderer?.optJSONObject("reason")?.optString("simpleText")?.takeIf { it.isNotBlank() }?.let { return it }
@@ -134,12 +170,17 @@ object YoutubeMediaExtractor {
         }
     }
 
-    private fun buildMedia(pageUrl: String, videoId: String, player: JSONObject): List<DetectedMedia> {
+    private fun buildMedia(
+        pageUrl: String,
+        videoId: String,
+        player: JSONObject,
+        userAgent: String
+    ): List<DetectedMedia> {
         val details = player.optJSONObject("videoDetails")
         val duration = details?.optString("lengthSeconds")?.toDoubleOrNull()?.takeIf { it > 0.0 }
         val streaming = player.optJSONObject("streamingData") ?: return emptyList()
         val now = System.currentTimeMillis()
-        val headers = mapOf("User-Agent" to USER_AGENT, "Referer" to pageUrl)
+        val headers = mapOf("User-Agent" to userAgent, "Referer" to pageUrl)
 
         val hls = streaming.optString("hlsManifestUrl").takeIf { it.isNotBlank() }
         if (hls != null && details?.optBoolean("isLive") == true) {
