@@ -2219,6 +2219,9 @@
     <string name="media_capture_deselect_all">Batalkan semua pilihan</string>
     <string name="media_capture_download_selected">Download (%1$d)</string>
     <string name="media_capture_empty_state">Belum ada media yang terdeteksi di halaman ini. Putar video atau audio agar terdeteksi di sini.</string>
+    <string name="media_capture_youtube_title">Video YouTube tidak bisa ditangkap</string>
+    <string name="media_capture_youtube_message">YouTube memecah videonya menjadi potongan-potongan terlindungi yang tidak bisa disimpan oleh Media Capture. Instal YTDLnis untuk mengunduhnya, dan Media Capture akan langsung mengirim video YouTube ke sana.</string>
+    <string name="media_capture_youtube_get_ytdlnis">Dapatkan YTDLnis</string>
     <string name="media_capture_section_video">VIDEO</string>
     <string name="media_capture_section_audio">AUDIO</string>
     <string name="media_capture_section_subtitles">SUBTITEL</string>

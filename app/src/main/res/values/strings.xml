@@ -2258,10 +2258,10 @@
     <string name="media_capture_select_all">Select all</string>
     <string name="media_capture_deselect_all">Deselect all</string>
     <string name="media_capture_download_selected">Download (%1$d)</string>
-    <string name="media_capture_youtube_loading">Reading this YouTube video\u2026</string>
-    <string name="media_capture_youtube_failed">Couldn\'t read this YouTube video: %1$s</string>
-    <string name="media_capture_youtube_retry">Try again</string>
     <string name="media_capture_empty_state">No media detected on this page yet. Play a video or audio track to detect it here.</string>
+    <string name="media_capture_youtube_title">YouTube videos can\'t be captured</string>
+    <string name="media_capture_youtube_message">YouTube splits its videos into protected pieces that Media Capture can\'t save. Install YTDLnis to download them, and Media Capture will send YouTube videos straight to it.</string>
+    <string name="media_capture_youtube_get_ytdlnis">Get YTDLnis</string>
     <string name="media_capture_section_video">VIDEO</string>
     <string name="media_capture_section_audio">AUDIO</string>
     <string name="media_capture_section_subtitles">SUBTITLES</string>

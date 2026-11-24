@@ -1,14 +1,11 @@
 package com.jhaiian.clint.browser.delegates
 
+import android.content.ActivityNotFoundException
 import android.content.ClipData
 import android.content.ClipboardManager
+import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import com.jhaiian.clint.R
@@ -27,16 +24,11 @@ import com.jhaiian.clint.mediacapture.MEDIA_CAPTURE_CONVERT_TS_TO_MP4_PREF
 import com.jhaiian.clint.mediacapture.MediaCaptureDialog
 import com.jhaiian.clint.mediacapture.MediaCaptureEntry
 import com.jhaiian.clint.mediacapture.MediaKind
-import com.jhaiian.clint.mediacapture.MediaCaptureStore
 import com.jhaiian.clint.mediacapture.MediaScanBridge
-import com.jhaiian.clint.mediacapture.YoutubeDialogState
-import com.jhaiian.clint.mediacapture.YoutubeExtraction
-import com.jhaiian.clint.mediacapture.YoutubeMediaExtractor
 import com.jhaiian.clint.browser.webview.loadJsAsset
 import com.jhaiian.clint.mediacapture.download.HlsSubtitleResolver
 import com.jhaiian.clint.mediacapture.download.StreamContainerFormat
 import com.jhaiian.clint.mediacapture.download.StreamDownloadRequest
-import com.jhaiian.clint.mediacapture.download.streamContainerFormatOf
 import com.jhaiian.clint.mediacapture.isMediaCaptureManifestBased
 import com.jhaiian.clint.mediacapture.audioTrackName
 import com.jhaiian.clint.mediacapture.compatibleAudioTracks
@@ -56,7 +48,8 @@ import kotlinx.coroutines.withContext
 internal fun MainActivity.mountMediaCaptureDialog() {
     val tabId = tabManager.activeTab?.id ?: return
     val pageUrl = tabManager.activeTab?.webView?.url ?: ""
-    val isYouTube = YoutubeMediaExtractor.videoIdFrom(pageUrl) != null
+    val isYouTube = isYouTubeUrl(pageUrl)
+    if (isYouTube && openInYtdlnis(pageUrl)) return
     val pageTitle = tabManager.activeTab?.title?.takeIf { it.isNotBlank() } ?: pageUrl
     val theme = prefs.getString("app_theme", "system") ?: "system"
     val hideStatusBar = prefs.getBoolean("hide_status_bar", false)
@@ -68,25 +61,6 @@ internal fun MainActivity.mountMediaCaptureDialog() {
 
     overlayContent = {
         ClintComposeTheme(theme = theme) {
-            var youtubeAttempt by remember { mutableStateOf(0) }
-            var downloadTitle by remember { mutableStateOf(pageTitle) }
-            var youtubeState by remember {
-                mutableStateOf<YoutubeDialogState>(if (isYouTube) YoutubeDialogState.Loading else YoutubeDialogState.None)
-            }
-            LaunchedEffect(tabId, youtubeAttempt) {
-                if (!isYouTube) return@LaunchedEffect
-                youtubeState = YoutubeDialogState.Loading
-                MediaCaptureStore.clearForTab(tabId)
-                youtubeState = when (val result = YoutubeMediaExtractor.extract(pageUrl)) {
-                    is YoutubeExtraction.Success -> {
-                        MediaCaptureStore.clearForTab(tabId)
-                        result.media.forEach { MediaCaptureStore.add(tabId, it) }
-                        downloadTitle = result.title
-                        YoutubeDialogState.Ready
-                    }
-                    is YoutubeExtraction.Failure -> YoutubeDialogState.Failed(result.reason)
-                }
-            }
             MediaCaptureDialog(
                 tabId = tabId,
                 hideStatusBar = hideStatusBar,
@@ -97,17 +71,48 @@ internal fun MainActivity.mountMediaCaptureDialog() {
                     tabManager.activeTab?.webView?.evaluateJavascript(com.jhaiian.clint.browser.webview.TabMediaControl.PAUSE_SCRIPT, null)
                 },
                 onDownload = { media, audio, allItems, estimatedBytes, containerExtension ->
-                    val proceed = { showMediaCaptureDownloadDialog(media, audio, pageUrl, downloadTitle, allItems, estimatedBytes, containerExtension) }
+                    val proceed = { showMediaCaptureDownloadDialog(media, audio, pageUrl, pageTitle, allItems, estimatedBytes, containerExtension) }
                     if (!offerRefreshLinkUpdate(media, audio, pageUrl, proceed)) proceed()
                 },
                 onDownloadSelected = { entries, allItems ->
-                    downloadMediaCaptureSelection(entries, allItems, pageUrl, downloadTitle)
+                    downloadMediaCaptureSelection(entries, allItems, pageUrl, pageTitle)
                 },
                 isYouTube = isYouTube,
-                youtubeState = youtubeState,
-                onRetryYoutube = { youtubeAttempt++ }
+                onGetYtdlnis = {
+                    overlayContent = null
+                    handleLinkOpenInNewTab(YTDLNIS_DOWNLOAD_URL)
+                }
             )
         }
+    }
+}
+
+private const val YTDLNIS_PACKAGE = "com.deniscerri.ytdl"
+
+private const val YTDLNIS_DOWNLOAD_URL = "https://github.com/deniscerri/ytdlnis/releases/latest"
+
+private val YOUTUBE_DOMAINS = listOf("youtube.com", "youtu.be", "youtube-nocookie.com")
+
+private fun isYouTubeUrl(url: String): Boolean {
+    val uri = runCatching { Uri.parse(url) }.getOrNull() ?: return false
+    if (uri.scheme?.lowercase() !in setOf("http", "https")) return false
+    val host = uri.host?.lowercase() ?: return false
+    return YOUTUBE_DOMAINS.any { host == it || host.endsWith(".$it") }
+}
+
+private fun MainActivity.openInYtdlnis(url: String): Boolean {
+    val intent = Intent(Intent.ACTION_SEND).apply {
+        type = "text/plain"
+        putExtra(Intent.EXTRA_TEXT, url)
+        setPackage(YTDLNIS_PACKAGE)
+    }
+    return try {
+        startActivity(intent)
+        true
+    } catch (_: ActivityNotFoundException) {
+        false
+    } catch (_: SecurityException) {
+        false
     }
 }
 
@@ -579,14 +584,14 @@ private fun MainActivity.enqueueMediaCaptureStream(
     estimatedTotalBytes: Long,
     convertTsToMp4: Boolean
 ) {
-    val format = streamContainerFormatOf(media.format)
+    val isDash = media.format.equals("DASH", true)
     val isAudioPrimary = media.kind == MediaKind.AUDIO
     val audio = if (!isAudioPrimary) pairedAudio else null
     val subtitle = pickSoleSubtitle(media, allItems)
     val headers = media.requestHeaders.ifEmpty { audio?.requestHeaders ?: emptyMap() }
 
     val request = StreamDownloadRequest(
-        format = format,
+        format = if (isDash) StreamContainerFormat.DASH else StreamContainerFormat.HLS,
         videoUrl = if (!isAudioPrimary) media.url else null,
         audioUrl = audio?.url ?: (if (isAudioPrimary) media.url else null),
         subtitleUrl = subtitle?.url,

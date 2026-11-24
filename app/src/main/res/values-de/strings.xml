@@ -2157,6 +2157,9 @@
     <string name="media_capture_deselect_all">Alle abwählen</string>
     <string name="media_capture_download_selected">Herunterladen (%1$d)</string>
     <string name="media_capture_empty_state">Auf dieser Seite wurden noch keine Medien erkannt. Spiele ein Video oder einen Audiotitel ab, damit er hier erkannt wird.</string>
+    <string name="media_capture_youtube_title">YouTube-Videos können nicht erfasst werden</string>
+    <string name="media_capture_youtube_message">YouTube teilt seine Videos in geschützte Teile auf, die die Medienerfassung nicht speichern kann. Installiere YTDLnis, um sie herunterzuladen – die Medienerfassung leitet YouTube-Videos dann direkt dorthin weiter.</string>
+    <string name="media_capture_youtube_get_ytdlnis">YTDLnis herunterladen</string>
     <string name="media_capture_section_video">VIDEO</string>
     <string name="media_capture_section_audio">AUDIO</string>
     <string name="media_capture_section_subtitles">UNTERTITEL</string>

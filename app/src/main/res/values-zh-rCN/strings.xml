@@ -2135,6 +2135,9 @@
     <string name="media_capture_deselect_all">取消全选</string>
     <string name="media_capture_download_selected">下载（%1$d）</string>
     <string name="media_capture_empty_state">当前网页未嗅探到任何媒体。播放音视频后将自动在此列出。</string>
+    <string name="media_capture_youtube_title">无法抓取 YouTube 视频</string>
+    <string name="media_capture_youtube_message">YouTube 将视频切分为受保护的片段，媒体嗅探抓取功能无法直接保存。安装 YTDLnis 即可下载，媒体嗅探抓取功能可直接将 YouTube 视频发送至该应用。</string>
+    <string name="media_capture_youtube_get_ytdlnis">获取 YTDLnis</string>
     <string name="media_capture_section_video">视频</string>
     <string name="media_capture_section_audio">音频</string>
     <string name="media_capture_section_subtitles">字幕</string>

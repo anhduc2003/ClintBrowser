@@ -2299,6 +2299,9 @@
     <string name="media_capture_deselect_all">Снять выбор</string>
     <string name="media_capture_download_selected">Скачать (%1$d)</string>
     <string name="media_capture_empty_state">На этой странице медиа пока не обнаружено. Воспроизведите видео- или аудиодорожку, чтобы обнаружить её здесь.</string>
+    <string name="media_capture_youtube_title">Видео с YouTube нельзя захватить</string>
+    <string name="media_capture_youtube_message">YouTube разбивает видео на защищённые фрагменты, которые Media Capture не может сохранить. Установите YTDLnis, чтобы скачивать их, и Media Capture будет сразу передавать видео с YouTube в это приложение.</string>
+    <string name="media_capture_youtube_get_ytdlnis">Установить YTDLnis</string>
     <string name="media_capture_section_video">ВИДЕО</string>
     <string name="media_capture_section_audio">АУДИО</string>
     <string name="media_capture_section_subtitles">СУБТИТРЫ</string>

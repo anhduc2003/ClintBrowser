@@ -2245,6 +2245,9 @@
     <string name="media_capture_deselect_all">إلغاء تحديد الكل</string>
     <string name="media_capture_download_selected">تنزيل (%1$d)</string>
     <string name="media_capture_empty_state">لم يتم اكتشاف أي وسائط في هذه الصفحة بعد. شغّل فيديو أو مقطعًا صوتيًا ليُكتشف هنا.</string>
+    <string name="media_capture_youtube_title">لا يمكن التقاط مقاطع فيديو YouTube</string>
+    <string name="media_capture_youtube_message">يقسّم YouTube مقاطع الفيديو إلى أجزاء محمية لا تستطيع ميزة التقاط الوسائط حفظها. ثبّت YTDLnis لتنزيلها، وسترسل ميزة التقاط الوسائط مقاطع فيديو YouTube إليه مباشرةً.</string>
+    <string name="media_capture_youtube_get_ytdlnis">الحصول على YTDLnis</string>
     <string name="media_capture_section_video">الفيديو</string>
     <string name="media_capture_section_audio">الصوت</string>
     <string name="media_capture_section_subtitles">الترجمات</string>

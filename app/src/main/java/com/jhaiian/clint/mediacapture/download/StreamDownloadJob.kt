@@ -112,7 +112,7 @@ object StreamDownloadJob {
         }
 
         try {
-            val format = streamContainerFormatOf(current.streamFormat)
+            val format = if (current.streamFormat == "DASH") StreamContainerFormat.DASH else StreamContainerFormat.HLS
             val primaryKind = if (current.streamPrimaryIsAudio) TrackKind.AUDIO else TrackKind.VIDEO
 
             val isLiveCapture = current.streamIsLive
@@ -802,7 +802,7 @@ object StreamDownloadJob {
     }
 
     internal fun probeTrack(item: DownloadItem, url: String, companion: Boolean): ResolvedTrack? {
-        val format = streamContainerFormatOf(item.streamFormat)
+        val format = if (item.streamFormat == "DASH") StreamContainerFormat.DASH else StreamContainerFormat.HLS
         val kind = if (companion || item.streamPrimaryIsAudio) TrackKind.AUDIO else TrackKind.VIDEO
         return resolveTrack(
             format, url, item.streamPageUrl, item.userAgent, kind,
@@ -828,7 +828,6 @@ object StreamDownloadJob {
     ): ResolvedTrack? = when (format) {
         StreamContainerFormat.HLS -> HlsPlaylistFetcher.fetch(url, pageUrl, "", userAgent, kind, extraHeaders)
         StreamContainerFormat.DASH -> DashSegmentResolver.fetch(url, pageUrl, "", userAgent, kind, width, height, bandwidth, extraHeaders, representationId)
-        StreamContainerFormat.DIRECT -> DirectTrackResolver.fetch(url, pageUrl, userAgent, extraHeaders, kind)
     }
 
     private const val MAX_LIVE_POLL_FAILURES = 5

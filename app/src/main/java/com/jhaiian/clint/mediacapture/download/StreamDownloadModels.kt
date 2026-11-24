@@ -5,7 +5,7 @@ import okhttp3.Request
 
 enum class TrackKind { VIDEO, AUDIO }
 
-enum class StreamContainerFormat { HLS, DASH, DIRECT }
+enum class StreamContainerFormat { HLS, DASH }
 
 const val STREAM_FORMAT_HLS_SUBTITLE = "HLS_SUBTITLE"
 
@@ -54,12 +54,6 @@ data class StreamDownloadRequest(
     val audioLanguage: String? = null,
     val audioLabel: String? = null
 )
-
-fun streamContainerFormatOf(raw: String?): StreamContainerFormat = when (raw?.trim()?.uppercase()) {
-    "DASH" -> StreamContainerFormat.DASH
-    "DIRECT" -> StreamContainerFormat.DIRECT
-    else -> StreamContainerFormat.HLS
-}
 
 object StreamBackoff {
     suspend fun wait(attempt: Int, isCancelled: () -> Boolean) {
