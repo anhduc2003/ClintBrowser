@@ -1676,6 +1676,10 @@
     <string name="quiver_guard_description">Chặn quảng cáo, trình theo dõi và nội dung gây phiền bằng danh sách bộ lọc</string>
     <string name="quiver_guard_auto_update_title">Tự động cập nhật danh sách bộ lọc</string>
     <string name="quiver_guard_auto_update_summary">Kiểm tra phiên bản mới ở chế độ nền và áp dụng khi đến hạn</string>
+    <string name="quiver_guard_cookie_dismiss_title">Tự đóng biểu ngữ cookie</string>
+    <string name="quiver_guard_cookie_dismiss_summary">Ẩn biểu ngữ xin đồng ý và chọn lựa chọn ít xâm phạm nhất khi trang hiển thị</string>
+    <string name="quiver_guard_click_guard_title">Chặn liên kết phủ toàn trang</string>
+    <string name="quiver_guard_click_guard_summary">Ngăn liên kết vô hình phủ toàn trang mở sang trang khác khi bạn chạm vào trang</string>
     <string name="quiver_guard_blocked_page_title">Quiver Guard đã chặn trang này</string>
     <string name="quiver_guard_blocked_page_message">Một trong các danh sách bộ lọc của bạn đánh dấu trang này là không mong muốn, nên nó đã bị chặn trước khi kịp tải.</string>
     <string name="quiver_guard_blocked_page_go_back">Quay lại</string>

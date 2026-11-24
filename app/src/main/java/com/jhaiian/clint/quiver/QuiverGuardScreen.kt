@@ -1,5 +1,8 @@
 package com.jhaiian.clint.quiver
+import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AdsClick
+import androidx.compose.material.icons.filled.Cookie
 import androidx.compose.material.icons.filled.Checklist
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
@@ -94,6 +97,8 @@ fun QuiverGuardScreen(
     onExit: () -> Unit,
     onMasterToggle: (Boolean) -> Unit,
     onAutoUpdateToggle: (Boolean) -> Unit,
+    onCookieDismissToggle: (Boolean) -> Unit,
+    onClickGuardToggle: (Boolean) -> Unit,
     onManualFilterClick: () -> Unit,
     onItemClick: (FilterList) -> Unit,
     onAddFromFileClick: () -> Unit,
@@ -178,6 +183,16 @@ fun QuiverGuardScreen(
                 autoUpdateEnabled = state.autoUpdateEnabled,
                 masterEnabled = state.masterEnabled,
                 onToggle = onAutoUpdateToggle
+            )
+            CookieDismissSwitchRow(
+                cookieDismissEnabled = state.cookieDismissEnabled,
+                masterEnabled = state.masterEnabled,
+                onToggle = onCookieDismissToggle
+            )
+            ClickGuardSwitchRow(
+                clickGuardEnabled = state.clickGuardEnabled,
+                masterEnabled = state.masterEnabled,
+                onToggle = onClickGuardToggle
             )
 
             Text(
@@ -280,6 +295,38 @@ private fun AutoUpdateSwitchRow(autoUpdateEnabled: Boolean, masterEnabled: Boole
         onClick = { if (masterEnabled) onToggle(!autoUpdateEnabled) },
         trailing = {
             ClintSwitch(checked = autoUpdateEnabled)
+        }
+    )
+}
+
+@Composable
+private fun CookieDismissSwitchRow(cookieDismissEnabled: Boolean, masterEnabled: Boolean, onToggle: (Boolean) -> Unit) {
+    val colors = LocalClintColors.current
+    SettingsRow(
+        icon = Icons.Filled.Cookie,
+        title = stringResource(R.string.quiver_guard_cookie_dismiss_title),
+        summary = stringResource(R.string.quiver_guard_cookie_dismiss_summary),
+        colors = colors,
+        enabled = masterEnabled,
+        onClick = { if (masterEnabled) onToggle(!cookieDismissEnabled) },
+        trailing = {
+            ClintSwitch(checked = cookieDismissEnabled)
+        }
+    )
+}
+
+@Composable
+private fun ClickGuardSwitchRow(clickGuardEnabled: Boolean, masterEnabled: Boolean, onToggle: (Boolean) -> Unit) {
+    val colors = LocalClintColors.current
+    SettingsRow(
+        icon = Icons.Filled.AdsClick,
+        title = stringResource(R.string.quiver_guard_click_guard_title),
+        summary = stringResource(R.string.quiver_guard_click_guard_summary),
+        colors = colors,
+        enabled = masterEnabled,
+        onClick = { if (masterEnabled) onToggle(!clickGuardEnabled) },
+        trailing = {
+            ClintSwitch(checked = clickGuardEnabled)
         }
     )
 }

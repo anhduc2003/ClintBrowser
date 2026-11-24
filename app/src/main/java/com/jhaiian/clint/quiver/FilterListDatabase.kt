@@ -69,6 +69,11 @@ internal class FilterListDatabase(context: Context) :
                 insertBuiltInListIfMissing(db, name, url)
             }
         }
+        if (oldVersion < 7) {
+            for ((name, url) in NEW_IN_V7_FILTER_LISTS) {
+                insertBuiltInListIfMissing(db, name, url)
+            }
+        }
     }
 
     fun getAllFilterLists(): List<FilterList> {
@@ -235,7 +240,7 @@ internal class FilterListDatabase(context: Context) :
 
     companion object {
         const val DB_NAME           = "quiver_guard.db"
-        const val DB_VERSION        = 6
+        const val DB_VERSION        = 7
         const val TABLE             = "filter_lists"
         const val COL_ID            = "id"
         const val COL_NAME          = "name"
@@ -260,6 +265,8 @@ internal class FilterListDatabase(context: Context) :
         private const val UBO_QUICK_FIXES_URL = "https://ublockorigin.github.io/uAssets/filters/quick-fixes.min.txt"
         private const val UBO_UNBREAK_URL = "https://ublockorigin.github.io/uAssets/filters/unbreak.min.txt"
         private const val PETER_LOWE_URL = "https://pgl.yoyo.org/adservers/serverlist.php?hostformat=adblockplus&showintro=1&mimetype=plaintext"
+        private const val UBO_COOKIE_NOTICES_URL = "https://ublockorigin.github.io/uAssets/filters/annoyances-cookies.txt"
+        private const val EASYLIST_COOKIE_URL = "https://secure.fanboy.co.nz/fanboy-cookiemonster.txt"
 
         private val NEW_IN_V6_FILTER_LISTS = listOf(
             Pair("uBlock filters", UBO_FILTERS_URL),
@@ -270,6 +277,11 @@ internal class FilterListDatabase(context: Context) :
             Pair("Peter Lowe's Ad and tracking server list", PETER_LOWE_URL)
         )
 
+        private val NEW_IN_V7_FILTER_LISTS = listOf(
+            Pair("uBlock filters – Cookie Notices", UBO_COOKIE_NOTICES_URL),
+            Pair("EasyList Cookie List", EASYLIST_COOKIE_URL)
+        )
+
         private val DEFAULT_FILTER_LISTS = listOf(
             Pair("EasyList", "https://easylist.to/easylist/easylist.txt"),
             Pair("EasyPrivacy", "https://easylist.to/easylist/easyprivacy.txt"),
@@ -277,7 +289,7 @@ internal class FilterListDatabase(context: Context) :
             Pair("AdGuard Mobile Ads", ADGUARD_MOBILE_ADS_URL),
             Pair("AdGuard Base Filter", ADGUARD_BASE_FILTER_URL),
             Pair("AdGuard Annoyances", ADGUARD_ANNOYANCES_URL)
-        ) + NEW_IN_V6_FILTER_LISTS
+        ) + NEW_IN_V6_FILTER_LISTS + NEW_IN_V7_FILTER_LISTS
 
         private val NEW_IN_V4_FILTER_LISTS = listOf(
             Pair("AdGuard Base Filter", ADGUARD_BASE_FILTER_URL),
@@ -285,7 +297,8 @@ internal class FilterListDatabase(context: Context) :
         )
 
         private val TRUSTED_FILTER_LIST_URLS = setOf(
-            UBO_FILTERS_URL, UBO_PRIVACY_URL, UBO_BADWARE_URL, UBO_QUICK_FIXES_URL, UBO_UNBREAK_URL
+            UBO_FILTERS_URL, UBO_PRIVACY_URL, UBO_BADWARE_URL, UBO_QUICK_FIXES_URL, UBO_UNBREAK_URL,
+            UBO_COOKIE_NOTICES_URL
         )
 
         fun isTrusted(filterList: FilterList): Boolean =

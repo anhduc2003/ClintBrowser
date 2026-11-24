@@ -20,10 +20,19 @@ try {
     if (ancestors && ancestors.length) topUrl = ancestors[ancestors.length - 1];
 } catch (e) {}
 
+// The interaction guards below do not depend on a filter list matching this page, so they are
+// installed before the cosmetic gate. The bridge returns an empty string when Quiver Guard is off
+// or the site is excepted, which keeps the per-site exception working for them too.
+var guardFlags = readGuardFlags(location.href, topUrl);
+if (guardFlags) {
+    defineHidden(__qgActiveKey, true);
+    if (guardFlags.click) installClickHijackGuard();
+    if (guardFlags.cookie) installCookieConsentDismissal();
+}
+
 var raw = '';
 try { raw = bridge.cosmetic(location.href, topUrl); } catch (e) {}
 if (!raw) return;
-defineHidden(__qgActiveKey, true);
 
 var data = null;
 try { data = JSON.parse(raw); } catch (e) {}
@@ -484,4 +493,306 @@ function runGenericHide(exceptionsJson) {
         }
         if (pendingClasses.length || pendingIds.length) schedule();
     });
+}
+
+// Interaction guards: filter lists cover the network and element hiding, but they cannot see a
+// transparent anchor laid over the page or a consent banner the site renders itself. Both run
+// inside the same "active for this page" gate as the cosmetic filtering above, and each one is
+// switched on or off from the Quiver Guard settings, so a site that breaks under them can be
+// handled with the existing per-site exception.
+
+// Returns null when Quiver Guard is off or excepted for this page, so the caller can skip both
+// guards entirely; otherwise the per-guard switches with the settings' own defaults.
+function readGuardFlags(url, topUrl) {
+    try {
+        var raw = bridge.guardFlags(url, topUrl);
+        if (!raw) return null;
+        var parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object') {
+            return { cookie: parsed.cookie !== false, click: parsed.click !== false };
+        }
+    } catch (e) {}
+    return null;
+}
+
+function registrableDomain(hostname) {
+    if (!hostname) return '';
+    var host = String(hostname).toLowerCase();
+    var parts = host.split('.');
+    if (parts.length <= 2) return host;
+    var twoLevel = {
+        'co.uk': 1, 'com.au': 1, 'co.jp': 1, 'co.kr': 1, 'com.br': 1, 'co.in': 1,
+        'com.vn': 1, 'com.sg': 1, 'com.my': 1, 'com.ph': 1, 'com.tw': 1, 'com.hk': 1,
+        'co.nz': 1, 'co.za': 1, 'com.mx': 1, 'com.ar': 1, 'com.tr': 1, 'com.ua': 1
+    };
+    var suffix = parts.slice(-2).join('.');
+    if (twoLevel[suffix]) return parts.slice(-3).join('.');
+    return suffix;
+}
+
+function installClickHijackGuard() {
+    var installedKey = '__qgClickGuardInstalled';
+    if (window[installedKey] === true) return;
+    defineHidden(installedKey, true);
+
+    var MIN_AREA_RATIO = 0.6;
+
+    function pageDomain() {
+        try { return registrableDomain(location.hostname); } catch (e) { return ''; }
+    }
+
+    function hasVisibleContent(el) {
+        if ((el.textContent || '').trim().length > 3) return true;
+        try {
+            if (el.querySelector('img, picture, svg, video, canvas, iframe, object, embed')) return true;
+        } catch (e) {}
+        return false;
+    }
+
+    function isHijack(anchor) {
+        var target;
+        try { target = new URL(anchor.getAttribute('href'), document.baseURI); } catch (e) { return false; }
+        if (target.protocol !== 'http:' && target.protocol !== 'https:') return false;
+        var targetDomain = registrableDomain(target.hostname);
+        var page = pageDomain();
+        if (!targetDomain || !page || targetDomain === page) return false;
+
+        var rect = anchor.getBoundingClientRect();
+        var vw = window.innerWidth || document.documentElement.clientWidth || 0;
+        var vh = window.innerHeight || document.documentElement.clientHeight || 0;
+        if (!vw || !vh || rect.width <= 0 || rect.height <= 0) return false;
+        if ((rect.width * rect.height) / (vw * vh) < MIN_AREA_RATIO) return false;
+
+        var style;
+        try { style = getComputedStyle(anchor); } catch (e) { return false; }
+        var positioned = style.position === 'fixed' || style.position === 'absolute';
+        if (!positioned) return false;
+
+        var opacity = parseFloat(style.opacity);
+        if (!isNaN(opacity) && opacity <= 0.05) return true;
+        if (style.visibility === 'hidden') return true;
+
+        var fullWidth = rect.width >= vw * 0.9;
+        var fullHeight = rect.height >= vh * 0.6;
+        return fullWidth && fullHeight && !hasVisibleContent(anchor);
+    }
+
+    // Popunders are the other half of a click hijack: a handler opens a tab the person never
+    // asked for. A gesture on a real control earns one popup; anything else is dropped.
+    var POPUP_GESTURE_WINDOW_MS = 2000;
+    var lastGesture = null;
+    function markGesture(event) {
+        if (!event.isTrusted) return;
+        var target = event.target;
+        lastGesture = {
+            at: Date.now(),
+            target: target && target.nodeType === 1 ? target : null
+        };
+    }
+    document.addEventListener('pointerdown', markGesture, true);
+    document.addEventListener('keydown', markGesture, true);
+
+    function gestureAllowsPopup() {
+        if (!lastGesture) return false;
+        if (Date.now() - lastGesture.at > POPUP_GESTURE_WINDOW_MS) return false;
+        var target = lastGesture.target;
+        if (!target || !target.closest) return false;
+        var control;
+        try {
+            control = target.closest('a[href], button, [role="button"], input[type="submit"], input[type="button"], label');
+        } catch (e) {
+            return false;
+        }
+        if (!control) return false;
+        var style = window.getComputedStyle(control);
+        if (parseFloat(style.opacity) <= 0.05) return false;
+        var rect = control.getBoundingClientRect();
+        return rect.width >= 4 && rect.height >= 4;
+    }
+
+    var nativeOpen = window.open;
+    if (typeof nativeOpen === 'function') {
+        window.open = function (url) {
+            if (!gestureAllowsPopup()) {
+                try { bridge.reportBlockedClick(String(url || 'popup')); } catch (e) {}
+                return null;
+            }
+            lastGesture = null;
+            return nativeOpen.apply(window, arguments);
+        };
+    }
+
+    document.addEventListener('click', function (event) {
+        if (!event.isTrusted) return;
+        var node = event.target;
+        var anchor = null;
+        while (node && node !== document) {
+            if (node.nodeType === 1 && node.tagName === 'A' && node.hasAttribute('href')) {
+                anchor = node;
+                break;
+            }
+            node = node.parentElement;
+        }
+        if (!anchor) return;
+        var hijack = false;
+        try { hijack = isHijack(anchor); } catch (e) {}
+        if (!hijack) return;
+        try { event.preventDefault(); } catch (e) {}
+        try { event.stopImmediatePropagation(); } catch (e) {}
+        try { bridge.reportBlockedClick(anchor.href); } catch (e) {}
+    }, true);
+}
+
+function installCookieConsentDismissal() {
+    var installedKey = '__qgConsentGuardInstalled';
+    if (window[installedKey] === true) return;
+    defineHidden(installedKey, true);
+
+    var CONSENT_TEXT = /(cookie|consent|gdpr|ccpa|privacy (policy|settings|preferences|choices)|we (use|value)|our partners|legitimate interest|tracking technologies|đồng ý|chấp thuận|sự đồng ý|quyền riêng tư|bánh quy)/i;
+    var REJECT_TEXT = /^(reject|reject all|decline|decline all|refuse|refuse all|disagree|deny|no thanks|not now|only (necessary|essential|required)|essential only|necessary only|use necessary|continue without accepting|từ chối|từ chối tất cả|không đồng ý|chỉ (cần thiết|thiết yếu))/i;
+    var ACCEPT_TEXT = /^(accept|accept all|allow|allow all|agree|agree to all|i agree|ok|okay|got it|consent|đồng ý|chấp nhận|chấp thuận|đồng ý tất cả)/i;
+    var CANDIDATE_SELECTOR = [
+        '[id*="cookie" i]', '[class*="cookie" i]', '[id*="consent" i]', '[class*="consent" i]',
+        '[id*="gdpr" i]', '[class*="gdpr" i]', '[id*="cmp" i]', '[class*="cmp" i]',
+        '[aria-label*="cookie" i]', '[aria-label*="consent" i]', '[role="dialog"]', '[role="alertdialog"]'
+    ].join(',');
+
+    var MAX_ATTEMPTS = 14;
+    var attempts = 0;
+    var finished = false;
+    var scheduled = false;
+    var observer = null;
+
+    function isVisible(el, minWidth, minHeight) {
+        if (!el || el.nodeType !== 1) return false;
+        var rect = el.getBoundingClientRect();
+        if (rect.width < (minWidth || 120) || rect.height < (minHeight || 32)) return false;
+        var style;
+        try { style = getComputedStyle(el); } catch (e) { return false; }
+        if (style.display === 'none' || style.visibility === 'hidden') return false;
+        var opacity = parseFloat(style.opacity);
+        return isNaN(opacity) || opacity > 0.05;
+    }
+
+    function isBannerLike(el) {
+        try {
+            var style = getComputedStyle(el);
+            if (style.position === 'fixed' || style.position === 'sticky') return true;
+        } catch (e) {}
+        var role = el.getAttribute('role');
+        if (role === 'dialog' || role === 'alertdialog') return true;
+        return false;
+    }
+
+    function labelOf(el) {
+        var text = (el.getAttribute('aria-label') || el.textContent || el.value || '').trim();
+        return text.replace(/\s+/g, ' ').slice(0, 80);
+    }
+
+    function findButton(container, pattern) {
+        var nodes = container.querySelectorAll('button, [role="button"], a[href], input[type="button"], input[type="submit"]');
+        for (var i = 0; i < nodes.length && i < 40; i++) {
+            var node = nodes[i];
+            if (!isVisible(node, 16, 12)) continue;
+            var label = labelOf(node);
+            if (label && pattern.test(label)) return node;
+        }
+        return null;
+    }
+
+    function clickElement(el) {
+        var rect = el.getBoundingClientRect();
+        var opts = {
+            bubbles: true, cancelable: true, view: window,
+            clientX: rect.left + rect.width / 2, clientY: rect.top + rect.height / 2
+        };
+        try {
+            el.dispatchEvent(new MouseEvent('pointerdown', opts));
+            el.dispatchEvent(new MouseEvent('mousedown', opts));
+            el.dispatchEvent(new MouseEvent('mouseup', opts));
+            el.dispatchEvent(new MouseEvent('click', opts));
+            return true;
+        } catch (e) {}
+        try { el.click(); return true; } catch (e2) {}
+        return false;
+    }
+
+    function hideElement(el) {
+        try { el.style.setProperty('display', 'none', 'important'); } catch (e) {}
+    }
+
+    function dismiss(container) {
+        var button = findButton(container, REJECT_TEXT);
+        if (!button) button = findButton(container, ACCEPT_TEXT);
+        if (button) {
+            clickElement(button);
+            setTimeout(function () {
+                if (isVisible(container)) hideElement(container);
+            }, 700);
+            return true;
+        }
+        // No recognisable choice button. Only hide a bar that covers part of the viewport, never a
+        // full-screen dialog the person still needs to interact with.
+        if (!isBannerLike(container)) return false;
+        var rect = container.getBoundingClientRect();
+        var vw = window.innerWidth || 0;
+        var vh = window.innerHeight || 0;
+        if (!vw || !vh || rect.width * rect.height > vw * vh * 0.5) return false;
+        hideElement(container);
+        return true;
+    }
+
+    function scan() {
+        if (finished || attempts >= MAX_ATTEMPTS) return;
+        attempts++;
+        var found = false;
+        var candidates;
+        try { candidates = document.querySelectorAll(CANDIDATE_SELECTOR); } catch (e) { return; }
+        var limit = Math.min(candidates.length, 60);
+        for (var i = 0; i < limit; i++) {
+            var el = candidates[i];
+            if (!el || el.nodeType !== 1) continue;
+            if (el.getAttribute('data-qg-consent') === 'done') continue;
+            if (!isVisible(el)) continue;
+            var text = (el.textContent || '').trim();
+            if (text.length < 20 || text.length > 4000) continue;
+            if (!CONSENT_TEXT.test(text)) continue;
+            try { el.setAttribute('data-qg-consent', 'done'); } catch (e) {}
+            var dismissed = false;
+            try { dismissed = dismiss(el); } catch (e) {}
+            if (dismissed) found = true;
+        }
+        if (found) {
+            finished = true;
+            if (observer) {
+                try { observer.disconnect(); } catch (e) {}
+            }
+            return;
+        }
+        schedule();
+    }
+
+    function schedule() {
+        if (scheduled || finished || attempts >= MAX_ATTEMPTS) return;
+        scheduled = true;
+        setTimeout(function () {
+            scheduled = false;
+            scan();
+        }, 1200);
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', scan, { once: true });
+    } else {
+        scan();
+    }
+
+    try {
+        if (typeof MutationObserver === 'function') {
+            observer = new MutationObserver(function () {
+                if (!finished) schedule();
+            });
+            observer.observe(document, { childList: true, subtree: true });
+        }
+    } catch (e) {}
 }

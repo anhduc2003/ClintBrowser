@@ -59,6 +59,8 @@ class QuiverGuardUiState {
     var manualFilterSummary by mutableStateOf(ManualFilterSummary(ruleCount = 0, isEnabled = false))
     var masterEnabled by mutableStateOf(false)
     var autoUpdateEnabled by mutableStateOf(QuiverGuardAutoUpdater.DEFAULT_AUTO_UPDATE)
+    var cookieDismissEnabled by mutableStateOf(true)
+    var clickGuardEnabled by mutableStateOf(true)
     var bannerText by mutableStateOf<String?>(null)
 
     var searchQuery by mutableStateOf("")

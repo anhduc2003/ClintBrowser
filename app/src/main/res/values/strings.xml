@@ -1738,6 +1738,10 @@
     <string name="quiver_guard_description">Block ads, trackers, and annoyances using filter lists</string>
     <string name="quiver_guard_auto_update_title">Update Filter Lists Automatically</string>
     <string name="quiver_guard_auto_update_summary">Checks for new versions in the background and applies them when they\'re due</string>
+    <string name="quiver_guard_cookie_dismiss_title">Dismiss Cookie Banners</string>
+    <string name="quiver_guard_cookie_dismiss_summary">Hide consent banners and take the least invasive choice when a page shows one</string>
+    <string name="quiver_guard_click_guard_title">Block Overlay Click Hijacks</string>
+    <string name="quiver_guard_click_guard_summary">Stop invisible full-page links from opening another site when you tap a page</string>
     <string name="quiver_guard_blocked_page_title">Quiver Guard Blocked This Page</string>
     <string name="quiver_guard_blocked_page_message">One of your filter lists marks this page as unwanted, so it was stopped before it could load.</string>
     <string name="quiver_guard_blocked_page_go_back">Go Back</string>

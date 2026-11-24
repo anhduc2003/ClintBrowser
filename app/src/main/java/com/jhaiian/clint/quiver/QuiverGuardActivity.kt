@@ -12,6 +12,7 @@ import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import com.jhaiian.clint.base.ClintActivity
+import com.jhaiian.clint.quiver.engine.QuiverGuardWebIntegration
 import com.jhaiian.clint.ui.listscreen.ConfirmDialogConfig
 import com.jhaiian.clint.ui.listscreen.ConfirmDialogHost
 import com.jhaiian.clint.ui.rememberMaxContentWidth
@@ -71,6 +72,8 @@ class QuiverGuardActivity : ClintActivity() {
 
         uiState.masterEnabled = prefs.getBoolean("quiver_guard_enabled", false)
         uiState.autoUpdateEnabled = QuiverGuardAutoUpdater.isEnabled(this)
+        uiState.cookieDismissEnabled = QuiverGuardWebIntegration.isCookieDismissEnabled(this)
+        uiState.clickGuardEnabled = QuiverGuardWebIntegration.isClickGuardEnabled(this)
         refreshFilterListDisplay()
         loadManualFilterSummary()
         performStartupValidation()
@@ -97,6 +100,14 @@ class QuiverGuardActivity : ClintActivity() {
                         onAutoUpdateToggle = { enabled ->
                             uiState.autoUpdateEnabled = enabled
                             QuiverGuardAutoUpdater.setEnabled(this@QuiverGuardActivity, enabled)
+                        },
+                        onCookieDismissToggle = { enabled ->
+                            uiState.cookieDismissEnabled = enabled
+                            prefs.edit().putBoolean(QuiverGuardWebIntegration.PREF_COOKIE_DISMISS, enabled).apply()
+                        },
+                        onClickGuardToggle = { enabled ->
+                            uiState.clickGuardEnabled = enabled
+                            prefs.edit().putBoolean(QuiverGuardWebIntegration.PREF_CLICK_GUARD, enabled).apply()
                         },
                         onManualFilterClick = {
                             startActivity(android.content.Intent(this@QuiverGuardActivity, ManualFilterActivity::class.java))
