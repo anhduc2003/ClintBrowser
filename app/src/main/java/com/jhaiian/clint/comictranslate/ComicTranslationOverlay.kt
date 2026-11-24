@@ -92,7 +92,7 @@ fun ComicTranslationOverlay(
     ) {
         when (state) {
             is ComicOverlayState.Analyzing -> {
-                FrozenPage(state.bitmap)
+                state.bitmap?.let { FrozenPage(it) }
                 CenteredCard {
                     CircularProgressIndicator(color = colors.primary, strokeWidth = 2.dp, modifier = Modifier.size(26.dp))
                     Text(
@@ -348,6 +348,7 @@ private fun failureText(state: ComicOverlayState.Failed): String {
             R.string.comic_translate_same_language,
             state.sourceLanguage?.let { ClintTranslations.displayName(it, locale) } ?: ""
         )
+        ComicFailure.CAPTURE_FAILED -> stringResource(R.string.comic_translate_capture_failed)
         ComicFailure.MODEL_MISSING -> stringResource(
             R.string.comic_translate_model_missing,
             formatFileSize(state.downloadBytes)

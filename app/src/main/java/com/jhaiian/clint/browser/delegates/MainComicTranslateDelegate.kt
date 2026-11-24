@@ -27,9 +27,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.withContext
 
 private const val AUTO_TRANSLATE_DELAY_MS = 1_200L
+private const val CAPTURE_TIMEOUT_MS = 4_000L
+private const val TRANSLATE_TIMEOUT_MS = 180_000L
 
 internal fun MainActivity.onMenuComicTranslate() {
     if (!ComicTranslateSupport.available) {
@@ -73,9 +76,22 @@ private fun MainActivity.startComicTranslation() {
         }
     }
 
-    fun translateCurrentTarget() {
-        val bitmap = overlayState.value?.bitmap() ?: return
-        retranslate(bitmap, ComicTranslateSupport.targetLanguage(this))
+    fun captureAndTranslate() {
+        overlayState.value = ComicOverlayState.Analyzing(overlayState.value?.bitmap())
+        lifecycleScope.launch {
+            val captured = withTimeoutOrNull(CAPTURE_TIMEOUT_MS) { captureContentBitmapAsync() }
+            if (captured == null) {
+                overlayState.value = ComicOverlayState.Failed(ComicFailure.CAPTURE_FAILED, null)
+                return@launch
+            }
+            retranslate(captured, ComicTranslateSupport.targetLanguage(this@startComicTranslation))
+        }
+    }
+
+    fun reloadTargetOptions() {
+        lifecycleScope.launch {
+            targetOptions = ComicTranslateSupport.targetOptions(this@startComicTranslation).sortedBy { it }
+        }
     }
 
     overlayContent = {
@@ -119,25 +135,20 @@ private fun MainActivity.startComicTranslation() {
                             }
                         }
                     },
-                    onRetry = { translateCurrentTarget() },
+                    onRetry = {
+                        val bitmap = overlayState.value?.bitmap()
+                        if (bitmap == null) captureAndTranslate()
+                        else retranslate(bitmap, ComicTranslateSupport.targetLanguage(this))
+                    },
                     onDismiss = { dismiss() }
                 )
             }
         }
     }
 
-    val activity = this
-    lifecycleScope.launch {
-        val captured = captureContentBitmapAsync()
-        if (captured == null) {
-            dismiss()
-            showClintSnackbar(message = getString(R.string.comic_translate_capture_failed))
-            return@launch
-        }
-        overlayState.value = ComicOverlayState.Analyzing(captured)
-        targetOptions = ComicTranslateSupport.targetOptions(activity).sortedBy { it }
-        retranslate(captured, ComicTranslateSupport.targetLanguage(activity))
-    }
+    overlayState.value = ComicOverlayState.Analyzing(null)
+    reloadTargetOptions()
+    captureAndTranslate()
 }
 
 private suspend fun MainActivity.translateComicPage(
@@ -146,9 +157,11 @@ private suspend fun MainActivity.translateComicPage(
     pageLanguage: String?,
     target: String
 ): ComicOverlayState {
-    val outcome = runCatching {
-        ComicTranslationEngine.translate(this, bitmap, pageUrl, pageLanguage, target)
-    }.getOrElse { ComicTranslationOutcome.Failure(ComicFailure.TRANSLATION_FAILED) }
+    val outcome = withTimeoutOrNull(TRANSLATE_TIMEOUT_MS) {
+        runCatching {
+            ComicTranslationEngine.translate(this@translateComicPage, bitmap, pageUrl, pageLanguage, target)
+        }.getOrElse { ComicTranslationOutcome.Failure(ComicFailure.TRANSLATION_FAILED) }
+    } ?: ComicTranslationOutcome.Failure(ComicFailure.TRANSLATION_FAILED)
     return when (outcome) {
         is ComicTranslationOutcome.Success -> ComicOverlayState.Ready(outcome.page)
         is ComicTranslationOutcome.Failure -> ComicOverlayState.Failed(

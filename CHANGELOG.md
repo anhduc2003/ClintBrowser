@@ -4,6 +4,15 @@ All notable changes to Clint Browser are documented here.
 
 ---
 
+# v1.2.10
+
+## Bug Fixes
+
+- **Translate comic page** now shows what it is doing instead of appearing to do nothing. The overlay opens the moment you tap the menu entry, screen capture gives up after a few seconds and reports that it failed, and a translation that stalls ends with an error instead of a frozen screen.
+- Capturing the page now falls back to drawing the view when the fast GPU capture is unavailable, so devices that refused the first method still get a translation.
+
+---
+
 # v1.2.9
 
 ## What's New

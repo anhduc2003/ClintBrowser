@@ -31,11 +31,12 @@ enum class ComicFailure {
     NO_SOURCE_LANGUAGE,
     SAME_LANGUAGE,
     MODEL_MISSING,
+    CAPTURE_FAILED,
     TRANSLATION_FAILED
 }
 
 sealed interface ComicOverlayState {
-    data class Analyzing(val bitmap: Bitmap) : ComicOverlayState
+    data class Analyzing(val bitmap: Bitmap?) : ComicOverlayState
     data class Downloading(val bitmap: Bitmap, val language: String, val bytes: Long) : ComicOverlayState
     data class Ready(val page: ComicTranslationPage) : ComicOverlayState
     data class Failed(
