@@ -95,7 +95,7 @@ jobs:
       - name: Detect ABI split mode
         id: mode
         run: |
-          if ls app/build/outputs/apk/github/release/app-github-arm64-v8a-release.apk 2>/dev/null; then
+          if ls app/build/outputs/apk/github/release/*arm64-v8a*-release*.apk >/dev/null 2>&1; then
             echo "split=true" >> "$GITHUB_OUTPUT"
           else
             echo "split=false" >> "$GITHUB_OUTPUT"
@@ -132,7 +132,10 @@ jobs:
                 cp "$apk" "$OUT_DIR/${BASE}-${ARCH}.apk"
               done
             else
-              cp "$SRC_DIR/app-${FLAVOR}-release.apk" "$OUT_DIR/${BASE}.apk"
+              # The single-APK name carries an -unsigned suffix when no keystore is configured.
+              local SRC_APK
+              SRC_APK=$(ls "$SRC_DIR"/app-"${FLAVOR}"-release*.apk 2>/dev/null | head -1)
+              cp "$SRC_APK" "$OUT_DIR/${BASE}.apk"
             fi
           }
 
@@ -219,6 +222,10 @@ jobs:
           PYEOF
 
       - name: Commit and push updated manifest
+        # The in-app updater's manifest is a convenience for people who already installed the app.
+        # A fork without the pushing token should still get its release, so a failure here does not
+        # stop the steps that create it.
+        continue-on-error: true
         run: |
           git config user.name "${{ secrets.GIT_USERNAME }}"
           git config user.email "${{ secrets.GIT_EMAIL }}"

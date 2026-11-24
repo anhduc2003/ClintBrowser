@@ -66,9 +66,10 @@ android {
             isMinifyEnabled = !skipMinify
             isShrinkResources = !skipMinify
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            if (hasSigningConfig) {
-                signingConfig = signingConfigs["release"]
-            }
+            // An unsigned APK cannot be installed, so without a release keystore the release build
+            // falls back to the debug key instead of shipping something nobody can sideload. Set
+            // signingConfig.storePassword in local.properties to sign with a real key.
+            signingConfig = if (hasSigningConfig) signingConfigs["release"] else signingConfigs["debug"]
         }
         debug {
             applicationIdSuffix = ".debug"
