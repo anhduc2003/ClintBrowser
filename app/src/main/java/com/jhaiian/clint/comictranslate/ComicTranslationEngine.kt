@@ -21,10 +21,16 @@ internal object ComicTranslationEngine {
         val target = ClintTranslations.normalize(targetLanguage) ?: targetLanguage
         val hinted = ComicScript.LATIN.forLanguage(pageLanguage)
         var script = hinted
-        var lines = ComicOcr.recognize(context, bitmap, hinted)
-        if (lines.isEmpty() && hinted != ComicScript.LATIN) {
-            lines = ComicOcr.recognize(context, bitmap, ComicScript.LATIN)
-            if (lines.isNotEmpty()) script = ComicScript.LATIN
+        var read = runCatching { ComicOcr.recognize(context, bitmap, hinted) }
+        if (read.getOrNull().isNullOrEmpty() && hinted != ComicScript.LATIN) {
+            val latin = runCatching { ComicOcr.recognize(context, bitmap, ComicScript.LATIN) }
+            if (!latin.getOrNull().isNullOrEmpty()) {
+                read = latin
+                script = ComicScript.LATIN
+            }
+        }
+        val lines = read.getOrElse { error ->
+            return ComicTranslationOutcome.Failure(ComicFailure.OCR_FAILED, detail = error.briefText())
         }
         val blocks = groupComicLines(lines)
         if (blocks.isEmpty()) return ComicTranslationOutcome.Failure(ComicFailure.NO_TEXT)
@@ -73,6 +79,12 @@ internal object ComicTranslationEngine {
             sourceLanguage = source,
             detail = onlineReason
         )
+    }
+
+    private fun Throwable.briefText(): String {
+        val name = javaClass.simpleName.ifBlank { "error" }
+        val message = message?.replace('\n', ' ')?.take(90)
+        return if (message.isNullOrBlank()) name else "$name: $message"
     }
 
     private fun page(

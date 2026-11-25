@@ -35,6 +35,7 @@ enum class ComicFailure {
     SAME_LANGUAGE,
     MODEL_MISSING,
     CAPTURE_FAILED,
+    OCR_FAILED,
     TRANSLATION_FAILED
 }
 

@@ -4,6 +4,15 @@ All notable changes to Clint Browser are documented here.
 
 ---
 
+# v1.2.13
+
+## Bug Fixes
+
+- **Translate comic page** no longer crashes inside the OCR library on the second page and every page after it. The text recognizer is created once and kept, because closing it released the model ML Kit had cached for that script behind the library's component registry, and the next lookup died with a null pointer that surfaced as "Không dịch được trang này". A page that still fails gets one retry on a fresh recognizer instead of on the closed one.
+- When reading the text itself fails, the overlay now says "Không đọc được chữ trong ảnh" instead of blaming the translation, with the exception under it.
+
+---
+
 # v1.2.12
 
 ## Bug Fixes

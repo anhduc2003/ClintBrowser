@@ -362,6 +362,7 @@ private fun failureText(state: ComicOverlayState.Failed): String {
             state.sourceLanguage?.let { ClintTranslations.displayName(it, locale) } ?: ""
         )
         ComicFailure.CAPTURE_FAILED -> stringResource(R.string.comic_translate_capture_failed)
+        ComicFailure.OCR_FAILED -> stringResource(R.string.comic_translate_ocr_failed)
         ComicFailure.MODEL_MISSING -> stringResource(
             R.string.comic_translate_model_missing,
             formatFileSize(state.downloadBytes)

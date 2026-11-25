@@ -2281,6 +2281,7 @@
     <string name="comic_translate_via_device">on device</string>
     <string name="comic_translate_unavailable">Comic translation isn\'t available in this build.</string>
     <string name="comic_translate_capture_failed">Couldn\'t capture this page.</string>
+    <string name="comic_translate_ocr_failed">Couldn\'t read the text in these images.</string>
     <string name="media_capture_section_video">VIDEO</string>
     <string name="media_capture_section_audio">AUDIO</string>
     <string name="media_capture_section_subtitles">SUBTITLES</string>

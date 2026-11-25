@@ -2161,6 +2161,7 @@
     <string name="comic_translate_via_device">trên máy</string>
     <string name="comic_translate_unavailable">Bản dựng này không có tính năng dịch truyện.</string>
     <string name="comic_translate_capture_failed">Không chụp được trang này.</string>
+    <string name="comic_translate_ocr_failed">Không đọc được chữ trong ảnh.</string>
     <string name="media_capture_section_video">VIDEO</string>
     <string name="media_capture_section_audio">ÂM THANH</string>
     <string name="media_capture_section_subtitles">PHỤ ĐỀ</string>
