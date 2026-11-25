@@ -46,7 +46,8 @@ sealed interface ComicOverlayState {
         val failure: ComicFailure,
         val bitmap: Bitmap?,
         val downloadBytes: Long = 0L,
-        val sourceLanguage: String? = null
+        val sourceLanguage: String? = null,
+        val detail: String? = null
     ) : ComicOverlayState
 }
 
@@ -55,7 +56,8 @@ sealed interface ComicTranslationOutcome {
     data class Failure(
         val reason: ComicFailure,
         val downloadBytes: Long = 0L,
-        val sourceLanguage: String? = null
+        val sourceLanguage: String? = null,
+        val detail: String? = null
     ) : ComicTranslationOutcome
 }
 

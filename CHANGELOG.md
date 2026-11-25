@@ -4,6 +4,17 @@ All notable changes to Clint Browser are documented here.
 
 ---
 
+# v1.2.12
+
+## Bug Fixes
+
+- **Translate comic page** no longer dies on one bad network answer. It tries three translation services in order and the first one that answers translates the page, so a blocked, rate limited or unreachable endpoint is no longer the end of the chapter.
+- The on-device engine now gets 25 seconds at most before Clint switches to the online engines. A language pack that fails to load used to eat the whole translation and end in a failure.
+- The language list Clint reads before translating is now fetched with a 10 second cap, so a slow Mozilla registry can no longer delay a page for minutes.
+- When every engine fails, the overlay shows the reason from each one under the message instead of only "Không dịch được trang này", so a report with a screenshot tells exactly what the device could not reach.
+
+---
+
 # v1.2.11
 
 ## Bug Fixes

@@ -160,17 +160,26 @@ private suspend fun MainActivity.translateComicPage(
     val outcome = withTimeoutOrNull(TRANSLATE_TIMEOUT_MS) {
         runCatching {
             ComicTranslationEngine.translate(this@translateComicPage, bitmap, pageUrl, pageLanguage, target)
-        }.getOrElse { ComicTranslationOutcome.Failure(ComicFailure.TRANSLATION_FAILED) }
-    } ?: ComicTranslationOutcome.Failure(ComicFailure.TRANSLATION_FAILED)
+        }.getOrElse { error ->
+            ComicTranslationOutcome.Failure(ComicFailure.TRANSLATION_FAILED, detail = error.briefDescription())
+        }
+    } ?: ComicTranslationOutcome.Failure(ComicFailure.TRANSLATION_FAILED, detail = "timeout")
     return when (outcome) {
         is ComicTranslationOutcome.Success -> ComicOverlayState.Ready(outcome.page)
         is ComicTranslationOutcome.Failure -> ComicOverlayState.Failed(
             failure = outcome.reason,
             bitmap = bitmap,
             downloadBytes = outcome.downloadBytes,
-            sourceLanguage = outcome.sourceLanguage
+            sourceLanguage = outcome.sourceLanguage,
+            detail = outcome.detail
         )
     }
+}
+
+private fun Throwable.briefDescription(): String {
+    val name = javaClass.simpleName.ifBlank { "error" }
+    val message = message?.replace('\n', ' ')?.take(90)
+    return if (message.isNullOrBlank()) name else "$name: $message"
 }
 
 private fun ComicOverlayState?.bitmap(): Bitmap? = when (this) {

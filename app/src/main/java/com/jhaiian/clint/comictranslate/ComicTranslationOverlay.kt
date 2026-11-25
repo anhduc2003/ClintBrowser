@@ -132,6 +132,15 @@ fun ComicTranslationOverlay(
                         fontSize = 13.sp,
                         textAlign = TextAlign.Center
                     )
+                    state.detail?.takeIf { it.isNotBlank() }?.let { detail ->
+                        Text(
+                            detail,
+                            color = colors.popupText.copy(alpha = 0.6f),
+                            fontSize = 10.sp,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
+                    }
                     when (state.failure) {
                         ComicFailure.MODEL_MISSING -> Button(
                             onClick = onDownloadModel,

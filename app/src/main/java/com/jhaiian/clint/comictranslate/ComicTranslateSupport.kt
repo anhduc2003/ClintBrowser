@@ -41,11 +41,16 @@ object ComicTranslateSupport {
         return true
     }
 
-    suspend fun sourceLanguage(context: Context, hint: String?, script: ComicScript): String? {
+    /**
+     * The page hint wins when it matches the script the text was read with, otherwise the
+     * script's own language. The offline registry only refines the spelling, so a registry
+     * that is slow or unreachable no longer makes a page untranslatable.
+     */
+    suspend fun sourceLanguage(context: Context, hint: String?, script: ComicScript): String {
         val normalizer = hint?.let { ClintTranslations.normalize(it) }
+        val decided = normalizer?.takeIf { script.matchesLanguage(it) } ?: script.defaultSourceLanguage
         val supported = TranslationRepository.registry(context)?.fromLanguages.orEmpty()
-        val candidates = listOfNotNull(normalizer?.takeIf { script.matchesLanguage(it) }, script.defaultSourceLanguage)
-        return candidates.firstOrNull { candidate -> supported.any { it.equals(candidate, ignoreCase = true) } }
+        return supported.firstOrNull { it.equals(decided, ignoreCase = true) } ?: decided
     }
 
     suspend fun targetOptions(context: Context): List<String> =

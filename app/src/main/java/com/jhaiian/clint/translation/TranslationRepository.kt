@@ -79,6 +79,7 @@ internal object TranslationRepository {
     private const val WASM_MAJOR_VERSION = 4
     private const val REFRESH_INTERVAL_MS = 24L * 60L * 60L * 1000L
     private const val RETRY_INTERVAL_MS = 10L * 60L * 1000L
+    private const val REGISTRY_TIMEOUT_SECONDS = 10L
     private val ACCEPTED_FILTERS = setOf("", "env.appinfo.OS == 'Android'")
 
     private val registryMutex = Mutex()
@@ -91,6 +92,11 @@ internal object TranslationRepository {
             .connectTimeout(20, TimeUnit.SECONDS)
             .readTimeout(60, TimeUnit.SECONDS)
             .build()
+    }
+
+    /** The registry lives on Mozilla's servers, so it must never hold a translation hostage. */
+    private val registryClient by lazy {
+        client.newBuilder().callTimeout(REGISTRY_TIMEOUT_SECONDS, TimeUnit.SECONDS).build()
     }
 
     fun root(context: Context): File = File(context.applicationContext.filesDir, "translations")
@@ -141,7 +147,7 @@ internal object TranslationRepository {
 
     private fun fetchCollection(collection: String): String? = runCatching {
         val request = Request.Builder().url("$SETTINGS_BASE$collection/records").build()
-        client.newCall(request).execute().use { response ->
+        registryClient.newCall(request).execute().use { response ->
             if (!response.isSuccessful) null else response.body.string()
         }
     }.getOrNull()

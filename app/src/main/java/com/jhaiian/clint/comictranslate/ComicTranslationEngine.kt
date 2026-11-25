@@ -5,8 +5,11 @@ import android.graphics.Bitmap
 import com.jhaiian.clint.translation.ClintTranslations
 import com.jhaiian.clint.translation.TranslationEngine
 import com.jhaiian.clint.translation.TranslationRepository
+import kotlinx.coroutines.withTimeoutOrNull
 
 internal object ComicTranslationEngine {
+
+    private const val ON_DEVICE_BUDGET_MS = 25_000L
 
     suspend fun translate(
         context: Context,
@@ -27,13 +30,14 @@ internal object ComicTranslationEngine {
         if (blocks.isEmpty()) return ComicTranslationOutcome.Failure(ComicFailure.NO_TEXT)
 
         val source = ComicTranslateSupport.sourceLanguage(context, pageLanguage, script)
-            ?: return ComicTranslationOutcome.Failure(ComicFailure.NO_SOURCE_LANGUAGE)
         if (ClintTranslations.sameLanguage(source, target)) {
             return ComicTranslationOutcome.Failure(ComicFailure.SAME_LANGUAGE, sourceLanguage = source)
         }
         val missingBytes = TranslationRepository.missingSize(context, source, target)
         if (missingBytes != null && missingBytes == 0L) {
-            val onDevice = translateOnDevice(context, source, target, blocks)
+            val onDevice = withTimeoutOrNull(ON_DEVICE_BUDGET_MS) {
+                translateOnDevice(context, source, target, blocks)
+            }
             if (onDevice != null) {
                 return ComicTranslationOutcome.Success(
                     page(context, bitmap, pageUrl, onDevice, source, target, ComicTranslationProvider.ON_DEVICE)
@@ -41,16 +45,20 @@ internal object ComicTranslationEngine {
             }
         }
 
-        val online = NetworkTranslator.translate(source, target, blocks.map { it.original })
-        if (online != null) {
-            val translated = blocks.mapIndexedNotNull { index, block ->
-                online.getOrNull(index)?.trim()?.takeIf { it.isNotEmpty() }?.let { block.copy(translation = it) }
+        var onlineReason: String? = null
+        when (val online = NetworkTranslator.translate(source, target, blocks.map { it.original })) {
+            is NetworkTranslator.Result.Success -> {
+                val translated = blocks.mapIndexedNotNull { index, block ->
+                    online.texts.getOrNull(index)?.trim()?.takeIf { it.isNotEmpty() }
+                        ?.let { block.copy(translation = it) }
+                }
+                if (translated.isNotEmpty()) {
+                    return ComicTranslationOutcome.Success(
+                        page(context, bitmap, pageUrl, translated, source, target, ComicTranslationProvider.ONLINE)
+                    )
+                }
             }
-            if (translated.isNotEmpty()) {
-                return ComicTranslationOutcome.Success(
-                    page(context, bitmap, pageUrl, translated, source, target, ComicTranslationProvider.ONLINE)
-                )
-            }
+            is NetworkTranslator.Result.Failure -> onlineReason = online.reason
         }
 
         if (missingBytes != null && missingBytes > 0L) {
@@ -60,7 +68,11 @@ internal object ComicTranslationEngine {
                 sourceLanguage = source
             )
         }
-        return ComicTranslationOutcome.Failure(ComicFailure.TRANSLATION_FAILED, sourceLanguage = source)
+        return ComicTranslationOutcome.Failure(
+            ComicFailure.TRANSLATION_FAILED,
+            sourceLanguage = source,
+            detail = onlineReason
+        )
     }
 
     private fun page(
